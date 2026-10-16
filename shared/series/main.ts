@@ -31,7 +31,7 @@ export function mount(kind: Kind): void {
   function updateRows(rows:Row[]):void { const validated=validateRows(rows,kind);project.rows=validated;selected='';page=0;commit(true); }
   function restoreHistory(delta:number):void { const index=historyIndex+delta;if(index<0||index>=history.length)return;historyIndex=index;project=structuredClone(history[index]);selected='';fontTask=loadFonts(project);persist();draw();panel();void fontTask.then(draw).catch(()=>toast('بارگذاری فونت ناموفق بود.',true)); }
   function setSetting<K extends keyof Settings>(key:K,value:Settings[K]):void { project.settings[key]=value;commit(); }
-  function applyTheme():void { document.body.classList.toggle('dark',project.settings.dark); }
+  function applyTheme():void { document.body.classList.toggle('dark',project.settings.dark); $('theme').setAttribute('aria-pressed',String(project.settings.dark)); }
   function draw():void {
     applyTheme();
     try {
@@ -51,7 +51,7 @@ export function mount(kind: Kind): void {
     $('clear-selection').hidden=!selected;
   }
   function field(label:string,key:keyof Settings,type='text',extra=''):string {
-    const value=project.settings[key];return `<label class="field"><span>${label}</span><input data-setting="${key}" type="${type}" value="${escape(value)}" ${extra}></label>`;
+    const value=project.settings[key];return `<label class="field"><span>${label}</span><input data-setting="${key}" type="${type}" value="${escape(value)}" ${type==='number'?'required':''} ${extra}></label>`;
   }
   function choice(label:string,key:keyof Settings,items:[string,string][]):string {
     return `<label class="field"><span>${label}</span><select data-setting="${key}">${items.map(([value,text])=>`<option value="${value}" ${String(project.settings[key])===value?'selected':''}>${escape(text)}</option>`).join('')}</select></label>`;
@@ -95,12 +95,19 @@ export function mount(kind: Kind): void {
       $('dropzone').onclick=()=>fileInput.click();$('dropzone').ondragover=event=>{event.preventDefault();};$('dropzone').ondrop=event=>{event.preventDefault();const file=event.dataTransfer?.files[0];if(file)void importData(file);};
     }
   }
+  async function spreadsheet():Promise<typeof import('xlsx')>{
+    const imported=await import('xlsx');
+    const fallback=(imported as unknown as {default?:typeof imported}).default;
+    const api=imported.utils?imported:fallback;
+    if(!api?.utils||typeof api.write!=='function')throw Error('کتابخانهٔ Excel بارگذاری نشد؛ صفحه را دوباره باز کنید.');
+    return api;
+  }
   async function importData(file:File):Promise<void>{
     if(busy)return;busy=true;
     try{
       if(file.size>5*1024*1024)throw Error('حداکثر حجم داده ۵ مگابایت است.');
       if(/\.xlsx?$/i.test(file.name)){
-        const XLSX=await import('xlsx'),book=XLSX.read(await file.arrayBuffer(),{type:'array'});
+        const XLSX=await spreadsheet(),book=XLSX.read(await file.arrayBuffer(),{type:'array'});
         const apply=(sheet:string):void=>{const matrix=XLSX.utils.sheet_to_json<unknown[]>(book.Sheets[sheet],{header:1,defval:''});updateRows(parseMatrix(matrix,kind));toast('داده‌های Excel وارد شدند.');};
         if(book.SheetNames.length===1)apply(book.SheetNames[0]);
         else showDialog('انتخاب برگهٔ Excel',`<label class="field"><span>برگهٔ داده</span><select id="sheet-choice">${book.SheetNames.map(name=>`<option value="${escape(name)}">${escape(name)}</option>`).join('')}</select></label><button id="apply-sheet" class="primary full">ورود دادهٔ این برگه</button>`,()=>{$('apply-sheet').onclick=()=>{try{apply(($('sheet-choice') as HTMLSelectElement).value);($('dialog') as HTMLDialogElement).close();}catch(error){toast((error as Error).message,true);}};});
@@ -126,8 +133,8 @@ export function mount(kind: Kind): void {
     $('panel').innerHTML=`<div class="section-heading"><h2>آماده برای ارائه</h2></div><p class="help">خروجی شامل داده‌ها، عنوان، رنگ‌ها و فونت انتخابی است.</p><div class="field-row">${field('عرض بوم (پیکسل)','width','number','min="600" max="2400" step="10"')}${field('ارتفاع بوم (پیکسل)','height','number','min="400" max="1800" step="10"')}</div>${toggle('پس‌زمینهٔ شفاف برای PNG و SVG','transparent')}<div class="export-grid"><button data-export="png">PNG<span>تصویر با کیفیت انتخابی</span></button><button data-export="jpg">JPG<span>همراه پس‌زمینه</span></button><button data-export="svg">SVG<span>برداری با فونت داخلی</span></button><button id="print">PDF / چاپ<span>ذخیره از پنجرهٔ چاپ</span></button></div><div class="divider"></div><h2 class="panel-h2">ذخیره و ادامهٔ کار</h2><button id="save-panel" class="full">ذخیرهٔ پروژهٔ قابل ویرایش</button><button id="csv-export" class="full">دریافت دادهٔ CSV</button><button id="xlsx-export" class="full">دریافت دادهٔ Excel</button><button id="html-export" class="full">دریافت نمودار HTML</button><p class="help">فایل پروژه شامل داده‌ها، تنظیمات و فونت‌هاست. ذخیرهٔ خودکار به همین مرورگر محدود است.</p>`;
     $('print').onclick=()=>window.print();$('save-panel').onclick=save;
     $('csv-export').onclick=()=>download('\ufeff'+dataCSV(project.rows,kind),`${kind}-data.csv`,'text/csv;charset=utf-8');
-    $('xlsx-export').onclick=async()=>{try{const XLSX=await import('xlsx'),book=XLSX.utils.book_new();const rows=kind==='streamgraph'?[['دوره','گروه','مقدار'],...project.rows.map(row=>[row.x,row.group,row.value])]:[['گروه','مقدار','وزن'],...project.rows.map(row=>[row.group,numberValue(row.x),row.value])];XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(rows),'Data');download(new Blob([XLSX.write(book,{type:'array',bookType:'xlsx'})]),`${kind}-data.xlsx`);toast('داده‌های Excel آماده شدند.');}catch{toast('خروجی Excel ناموفق بود.',true);}};
-    $('html-export').onclick=async()=>{try{const content=await serialized(false);download(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(project.settings.title)}</title></head><body style="margin:0">${content}</body></html>`,`${kind}-chart.html`,'text/html');toast('نمودار HTML آماده شد.');}catch(error){toast((error as Error).message,true);}};
+    $('xlsx-export').onclick=async()=>{try{const XLSX=await spreadsheet(),book=XLSX.utils.book_new();const rows=kind==='streamgraph'?[['دوره','گروه','مقدار'],...project.rows.map(row=>[row.x,row.group,row.value])]:[['گروه','مقدار','وزن'],...project.rows.map(row=>[row.group,numberValue(row.x),row.value])];XLSX.utils.book_append_sheet(book,XLSX.utils.aoa_to_sheet(rows),'Data');download(new Blob([XLSX.write(book,{type:'array',bookType:'xlsx'})]),`${kind}-data.xlsx`);toast('داده‌های Excel آماده شدند.');}catch{toast('خروجی Excel ناموفق بود.',true);}};
+    $('html-export').onclick=async()=>{try{const content=await serialized(false);download(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(project.settings.title)}</title><style>svg{max-width:100%;height:auto;display:block}</style></head><body style="margin:0">${content}</body></html>`,`${kind}-chart.html`,'text/html');toast('نمودار HTML آماده شد.');}catch(error){toast((error as Error).message,true);}};
     bindExports();
   }
   function bindSettings():void {
@@ -148,7 +155,7 @@ export function mount(kind: Kind): void {
   let defaultFont: Promise<string> | undefined;
   async function serialized(forceBackground:boolean):Promise<string>{
     await fontTask;await loadFonts(project);await document.fonts.ready;if(!svg)throw Error('نمودار آماده نیست.');
-    const copy=svg.cloneNode(true) as SVGSVGElement;copy.setAttribute('width',String(project.settings.width));copy.setAttribute('height',String(project.settings.height));copy.style.transform='';copy.style.width='100%';copy.style.height='auto';
+    const copy=svg.cloneNode(true) as SVGSVGElement;copy.setAttribute('width',String(project.settings.width));copy.setAttribute('height',String(project.settings.height));copy.style.transform='';copy.style.removeProperty('width');copy.style.removeProperty('height');
     if(project.settings.transparent&&!forceBackground)copy.querySelector('[data-background]')?.remove();
     copy.querySelectorAll<SVGPathElement>('[data-group]').forEach(path=>{path.removeAttribute('tabindex');path.removeAttribute('role');path.removeAttribute('data-group');path.setAttribute('opacity',String(project.settings.opacity));path.style.cursor='';});
     defaultFont ??= fetch(new URL('fonts/vazirmatn.woff2',document.baseURI)).then(response=>{if(!response.ok)throw Error('فونت خروجی دریافت نشد.');return response.blob();}).then(blob=>new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(Error('خواندن فونت خروجی ناموفق بود.'));reader.readAsDataURL(blob);})).catch(error=>{defaultFont=undefined;throw error;});
