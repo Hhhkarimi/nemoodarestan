@@ -11,6 +11,7 @@
   --color-line: oklch(86% .012 100);
   --color-grid: oklch(90% .012 100);
   --color-error: oklch(44% .15 25);
+  --color-backdrop: oklch(20% .02 155 / .45);
   --color-chart-green: oklch(59% .11 157);
   --color-chart-lime: oklch(79% .13 123);
   --color-chart-orange: oklch(72% .12 56);
