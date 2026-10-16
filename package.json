@@ -16,7 +16,7 @@
     "test:studios": "node scripts/test-studios.mjs",
     "check": "tsc --noEmit && npm test",
     "build:portable": "node scripts/build-portable.mjs",
-    "previews": "node scripts/generate-previews.mjs && node scripts/generate-series-previews.mjs"
+    "previews": "node scripts/generate-previews.mjs && node scripts/generate-series-previews.mjs && node scripts/generate-radial-previews.mjs"
   },
   "devDependencies": {
     "typescript": "~5.9.3",

@@ -1,0 +1,14 @@
+{
+  "name": "spiral-heatmap-studio-fa",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --test --test-isolation=none tests/*.test.mjs"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

@@ -1,4 +1,5 @@
-export type Kind = 'streamgraph' | 'ridgeline';
+import { radialSamples, validateRadialRows } from '../radial/math.ts';
+export type Kind = 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap';
 export interface Row { x: string; group: string; value: number }
 export interface CustomFont { id: string; name: string; dataUrl: string; format: 'woff2' | 'woff' | 'truetype' | 'opentype' }
 export interface Settings {
@@ -9,6 +10,10 @@ export interface Settings {
   showAxes: boolean; showValues: boolean; transparent: boolean; dark: boolean; direction: string;
   digits: string; decimals: number; curve: string; offset: string; order: string; normalize: boolean;
   bandwidth: number; overlap: number; densityScale: string; ridgeSort: string; showMedian: boolean;
+  innerRadius: number; rotation: number; ringGap: number; sunSort: string; labelMode: string; valueMode: string; focusPath: string;
+  slotsPerTurn: number; timeUnit: string; aggregation: string; calendar: string; clockwise: boolean;
+  heatPalette: string; reverseColors: boolean; autoDomain: boolean; domainMin: number; domainMax: number;
+  lowColor: string; highColor: string; missingColor: string;
 }
 export interface Project { version: 1; kind: Kind; rows: Row[]; settings: Settings; fonts: CustomFont[]; colors: Record<string, string> }
 export const palettes: Record<string, string[]> = {
@@ -21,7 +26,9 @@ export const palettes: Record<string, string[]> = {
 };
 export const metadata: Record<Kind, { title: string; english: string; category: string }> = {
   streamgraph: { title: 'رودخانه‌ای استودیو', english: 'STREAMGRAPH STUDIO', category: 'روند لایه‌های سیال' },
-  ridgeline: { title: 'کوهستانی استودیو', english: 'RIDGELINE STUDIO', category: 'مقایسهٔ توزیع گروه‌ها' }
+  ridgeline: { title: 'کوهستانی استودیو', english: 'RIDGELINE STUDIO', category: 'مقایسهٔ توزیع گروه‌ها' },
+  sunburst: { title: 'خورشیدی استودیو', english: 'SUNBURST STUDIO', category: 'سلسله‌مراتب در حلقه‌ها' },
+  'spiral-heatmap': { title: 'مارپیچی استودیو', english: 'SPIRAL HEATMAP STUDIO', category: 'الگوی زمانی در مسیر مارپیچ' }
 };
 export function numberValue(input: unknown): number {
   const text = String(input ?? '').trim().replace(/[۰-۹]/g, c => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c)))
@@ -31,18 +38,23 @@ export function numberValue(input: unknown): number {
 export const hex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 export function defaults(kind: Kind): Settings {
   return {
-    title: kind === 'streamgraph' ? 'توجه مخاطبان در طول سال' : 'توزیع زمان پاسخ‌گویی',
-    subtitle: kind === 'streamgraph' ? 'روند کانال‌های ارتباطی · داده‌های نمونه' : 'مقایسهٔ شش تیم · داده‌های نمونه',
-    unit: kind === 'streamgraph' ? 'هزار بازدید' : 'دقیقه', fontFamily: 'Vazirmatn',
+    title: ({streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان'})[kind],
+    subtitle: ({streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه'})[kind],
+    unit: ({streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت'})[kind], fontFamily: 'Vazirmatn',
     titleSize: 28, subtitleSize: 15, fontSize: 14, legendSize: 13,
     width: 1200, height: 760, palette: 'ocean', background: '#ffffff', textColor: '#263d45',
     opacity: .87, strokeWidth: 1, showLegend: true, showLabels: true, showGrid: false,
     showAxes: true, showValues: false, transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
     curve: kind === 'streamgraph' ? 'basis' : 'monotone', offset: 'wiggle', order: 'inside-out', normalize: false,
-    bandwidth: 0, overlap: 1.65, densityScale: 'shared', ridgeSort: 'input', showMedian: false
+    bandwidth: 0, overlap: 1.65, densityScale: 'shared', ridgeSort: 'input', showMedian: false,
+    innerRadius: .2, rotation: 0, ringGap: 1.5, sunSort: 'input', labelMode: 'horizontal', valueMode: 'percent', focusPath: '',
+    slotsPerTurn: 30, timeUnit: 'day', aggregation: 'mean', calendar: 'persian', clockwise: true,
+    heatPalette: 'teal', reverseColors: false, autoDomain: true, domainMin: 0, domainMax: 100,
+    lowColor: '#e9f2eb', highColor: '#12675e', missingColor: '#dce1e4'
   };
 }
 export function sampleRows(kind: Kind, alternative = false): Row[] {
+  if(kind==='sunburst'||kind==='spiral-heatmap')return radialSamples(kind,alternative);
   if (kind === 'streamgraph') {
     const months = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
     const names = alternative ? ['محصول الف','محصول ب','محصول ج','محصول د','محصول ه'] : ['جست‌وجو','شبکه‌های اجتماعی','مراجعهٔ مستقیم','ایمیل','معرفی دوستان','تبلیغات'];
@@ -58,6 +70,7 @@ export function sampleRows(kind: Kind, alternative = false): Row[] {
 }
 export function initial(kind: Kind): Project { return { version: 1, kind, rows: sampleRows(kind), settings: defaults(kind), fonts: [], colors: {} }; }
 export function validateRows(input: unknown, kind: Kind): Row[] {
+  if(kind==='sunburst'||kind==='spiral-heatmap')return validateRadialRows(input,kind,numberValue);
   if (!Array.isArray(input) || !input.length) throw Error('حداقل یک ردیف داده وارد کنید.');
   if (input.length > 5000) throw Error('حداکثر ۵۰۰۰ ردیف داده مجاز است.');
   const rows = input.map((raw, index) => {
@@ -82,7 +95,8 @@ export function validateRows(input: unknown, kind: Kind): Row[] {
 }
 const numericRanges: Partial<Record<keyof Settings, [number, number]>> = {
   width: [600,2400], height: [400,1800], titleSize: [14,60], subtitleSize: [10,32], fontSize: [9,28], legendSize: [9,24],
-  opacity: [.1,1], strokeWidth: [0,4], decimals: [0,3], bandwidth: [0,1e12], overlap: [.5,4]
+  opacity: [.1,1], strokeWidth: [0,4], decimals: [0,3], bandwidth: [0,1e12], overlap: [.5,4],
+  innerRadius:[.08,.45],rotation:[-180,180],ringGap:[0,8],slotsPerTurn:[3,366],domainMin:[-1e12,1e12],domainMax:[-1e12,1e12]
 };
 export function parseProject(input: unknown, kind: Kind): Project {
   if (!input || typeof input !== 'object') throw Error('فایل پروژه معتبر نیست.');
@@ -97,11 +111,15 @@ export function parseProject(input: unknown, kind: Kind): Project {
     target[key] = Number.isFinite(n) ? Math.max(limits[0], Math.min(limits[1], n)) : (defaults(kind) as unknown as Record<string, unknown>)[key];
   }
   settings.width = Math.round(settings.width); settings.height = Math.round(settings.height); settings.decimals = Math.round(settings.decimals);
+  settings.slotsPerTurn=Math.round(settings.slotsPerTurn);
   for (const key of ['title','subtitle','unit'] as const) settings[key] = settings[key].slice(0, key === 'subtitle' ? 180 : 100);
+  settings.focusPath=settings.focusPath.slice(0,647);
   if (!Object.hasOwn(palettes,settings.palette)) settings.palette = 'ocean';
-  for (const key of ['background','textColor'] as const) if (!hex(settings[key])) settings[key] = defaults(kind)[key];
+  for (const key of ['background','textColor','lowColor','highColor','missingColor'] as const) if (!hex(settings[key])) settings[key] = defaults(kind)[key];
   const choices: Partial<Record<keyof Settings,string[]>> = { direction:['ltr','rtl'], digits:['fa','en'], curve:['basis','monotone','linear','step'], offset:['wiggle','silhouette','zero'], order:['inside-out','input','total','reverse'], densityScale:['shared','individual'], ridgeSort:['input','mean','median','reverse'] };
   for (const [key, values] of Object.entries(choices)) if (!values.includes(String(target[key]))) target[key] = (defaults(kind) as unknown as Record<string, unknown>)[key];
+  const radialChoices:Partial<Record<keyof Settings,string[]>>={sunSort:['input','value','name'],labelMode:['horizontal','radial','none'],valueMode:['value','percent','parent'],timeUnit:['hour','day','month'],aggregation:['mean','sum','max'],calendar:['persian','gregory'],heatPalette:['teal','amber','purple','diverging','custom']};
+  for(const [key,values] of Object.entries(radialChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const fonts: CustomFont[] = [];
   if (Array.isArray(p.fonts)) for (const item of p.fonts) {
     if (!item || typeof item !== 'object') continue;

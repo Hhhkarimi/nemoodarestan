@@ -179,5 +179,64 @@
     ],
     "entry": "/studios/ridgeline/index.html",
     "preview": "/previews/ridgeline.svg"
+  },
+  {
+    "id": "sunburst",
+    "title": "خورشیدی",
+    "englishTitle": "Sunburst Chart",
+    "category": "part",
+    "categoryLabel": "سهم و ترکیب",
+    "useCase": "از کل به جزئیات بروید",
+    "description": "سلسله‌مراتب داده‌ها در حلقه‌های تو‌در‌تو؛ سهم بازار، ساختار هزینه یا دسته‌بندی محصولات را از کل تا جزئیات ببینید.",
+    "tags": [
+      "خورشیدی",
+      "حلقه‌ای",
+      "سلسله‌مراتب",
+      "درختی",
+      "سهم",
+      "sunburst"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON درختی و ورود دستی",
+    "directory": "apps/sunburst",
+    "buildArgs": [
+      "--base=/studios/sunburst/"
+    ],
+    "entry": "/studios/sunburst/index.html",
+    "preview": "/previews/sunburst.svg"
+  },
+  {
+    "id": "spiral-heatmap",
+    "title": "حرارتی مارپیچی",
+    "englishTitle": "Spiral Heatmap",
+    "category": "time",
+    "categoryLabel": "روند زمانی",
+    "useCase": "چرخه‌ها را در رنگ‌ها پیدا کنید",
+    "description": "داده‌های زمانی از داخل به بیرون روی مسیر مارپیچ؛ چرخهٔ فعالیت، دما یا فروش را با شدت رنگ مقایسه کنید.",
+    "tags": [
+      "مارپیچ",
+      "مارپیچی",
+      "حرارتی",
+      "زمان",
+      "چرخه",
+      "heatmap",
+      "spiral"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/spiral-heatmap",
+    "buildArgs": [
+      "--base=/studios/spiral-heatmap/"
+    ],
+    "entry": "/studios/spiral-heatmap/index.html",
+    "preview": "/previews/spiral-heatmap.svg"
   }
 ]

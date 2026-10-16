@@ -1,0 +1,15 @@
+import {writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {arc} from 'd3-shape';
+import {initial} from '../shared/series/model.ts';
+import {flatten,hierarchy,heatTable,heatColor,heatDomain,spiralCell} from '../shared/radial/math.ts';
+import {root} from './run.mjs';
+const colors=['#468b6f','#dca265','#aaa0c4'];
+const wrap=content=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 324"><style>text{font-family:Vazirmatn,Tahoma,sans-serif;fill:#334b40}</style>${content}</svg>`;
+const sun=initial('sunburst'),tree=hierarchy(sun.rows,'input'),shape=arc();
+const paths=flatten(tree).map(n=>`<path d="${shape({innerRadius:23+(n.depth-1)*39,outerRadius:22+n.depth*39,startAngle:n.start,endAngle:n.end,padAngle:.012})}" fill="${colors[tree.children.findIndex(c=>c.name===n.group)]}" opacity="${1-(n.depth-1)*.19}" stroke="#faf9f5" stroke-width="1"/>`).join('');
+await writeFile(resolve(root,'public/previews/sunburst.svg'),wrap(`<g transform="translate(300 160)">${paths}<text y="4" text-anchor="middle" font-size="12">فروش</text></g>`));
+const spiral=initial('spiral-heatmap'),cells=heatTable(spiral.rows,'day','mean'),domain=heatDomain(cells,spiral.settings);
+const heat=cells.map(c=>`<path d="${spiralCell(c.index,cells.length,30,139,20,1,0,true).path}" fill="${c.value===null?spiral.settings.missingColor:heatColor(c.value,domain,spiral.settings)}" stroke="#faf9f5" stroke-width=".4"/>`).join('');
+await writeFile(resolve(root,'public/previews/spiral-heatmap.svg'),wrap(`<g transform="translate(300 154)">${heat}</g>`));
+console.log('Sunburst and Spiral Heatmap previews generated from sample data.');

@@ -10,6 +10,7 @@
 .stats .stat strong{overflow-wrap:anywhere}.stats .stat{min-width:0}
 .flows th:nth-child(3){width:65px}.flows input{font-size:12px;min-height:37px}
 .flows th:last-child{width:25px}.pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;color:var(--muted);font-size:12px}.pagination button{min-width:38px;padding:7px}
+.radial-data th:first-child{width:auto}.radial-data th:nth-child(2){width:80px}.radial-data input[data-key="x"]{direction:ltr;text-align:right}.canvas svg [data-path]:focus-visible{outline:3px solid var(--accent)}
 .dropzone{width:100%;display:flex;flex-direction:column;gap:8px}.dropzone>span:first-child{font-size:25px;color:var(--accent)}
 .palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:16px}.palette button{min-width:0;font-size:11px;padding:6px;gap:5px}.swatches{min-height:20px}
 .node-color{gap:10px}.node-color>span{overflow-wrap:anywhere;min-width:0;max-width:230px}.node-color input{flex-shrink:0}.selected-color{background:var(--soft);padding:7px;border-radius:6px}
