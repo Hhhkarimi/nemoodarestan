@@ -104,6 +104,6 @@ export function renderChart(project: Project, selectGroup?: (group: string) => v
       svg.append(text(xx-16,yy,name,s.legendSize,{'text-anchor':'end'}));
     });
   }
-  if(s.showAxes && s.unit)svg.append(text(w/2,bottom+49,s.unit,s.fontSize,{opacity:.7}));
+  if(s.showAxes && s.unit)svg.append(text(w/2,bottom+49,project.kind==='streamgraph'&&s.normalize?'سهم از مجموع دوره (درصد)':s.unit,s.fontSize,{opacity:.7}));
   return {svg,summaries,note,bandwidth};
 }
