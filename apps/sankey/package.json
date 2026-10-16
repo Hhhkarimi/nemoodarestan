@@ -1,0 +1,30 @@
+{
+  "name": "sankey-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --test --test-isolation=none tests/model.test.mjs",
+    "build:portable": "node node_modules/typescript/bin/tsc --noEmit && node scripts/vite-local.mjs && node scripts/standalone.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/vazirmatn": "^5.3.0",
+    "d3-sankey": "^0.12.3",
+    "lucide": "^0.468.0",
+    "papaparse": "^5.5.3",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/d3-sankey": "^0.12.4",
+    "@types/papaparse": "^5.3.16",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.5"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

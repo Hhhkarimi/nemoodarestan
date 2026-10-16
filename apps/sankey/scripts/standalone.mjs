@@ -1,0 +1,10 @@
+import {readFileSync,writeFileSync,readdirSync} from 'node:fs';
+const font='data:font/woff2;base64,'+readFileSync('public/fonts/vazirmatn.woff2').toString('base64');
+const favicon='data:image/svg+xml;base64,'+readFileSync('public/favicon.svg').toString('base64');
+const files=readdirSync('dist/assets');
+const js=files.filter(f=>f.endsWith('.js'));
+if(js.length!==1)throw Error('Standalone build must inline all dynamic imports');
+const css=readFileSync('dist/assets/'+files.find(f=>f.endsWith('.css')),'utf8').replaceAll('/fonts/vazirmatn.woff2',font);
+const script=readFileSync('dist/assets/'+js[0],'utf8').replaceAll('/fonts/vazirmatn.woff2',font).replaceAll('/favicon.svg',favicon).replaceAll('</script','<\\/script');
+writeFileSync('../sankey-studio-offline.html',`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>سانکی استودیو</title><link rel="icon" href="${favicon}"><style>${css}</style></head><body><div id="app"></div><script type="module">${script}</script></body></html>`);
+console.log('Standalone offline app written.');

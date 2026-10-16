@@ -1,0 +1,42 @@
+[
+  {
+    "id": "sankey", "title": "سانکی", "englishTitle": "Sankey diagram",
+    "category": "flow", "categoryLabel": "جریان و ارتباط", "useCase": "مسیرها را دنبال کنید",
+    "description": "چه چیزی، از کجا، به کجا می‌رود؟ جریان بودجه، انرژی یا مسیر مشتری را به تصویر بکشید.",
+    "tags": ["جریان", "بودجه", "انرژی", "مسیر", "سانکی", "سنکی"],
+    "formats": ["SVG", "PNG", "JPG"], "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/sankey", "buildArgs": ["--base=/studios/sankey/"],
+    "entry": "/studios/sankey/index.html", "preview": "/previews/sankey.svg",
+    "source": "https://github.com/Hhhkarimi/sankey-studio", "sourceCommit": "3d1d30a66a322caa08d6dc9937cffe484c917eb0"
+  },
+  {
+    "id": "voronoi", "title": "ورونوی", "englishTitle": "Voronoi treemap",
+    "category": "part", "categoryLabel": "سهم و ترکیب", "useCase": "سهم‌ها را کنار هم ببینید",
+    "description": "هر بخش، به اندازهٔ سهمش. ترکیب فروش، سبد هزینه یا سهم دسته‌ها را با شکل‌های ارگانیک نشان دهید.",
+    "tags": ["سهم", "ترکیب", "فروش", "هزینه", "درختی", "تری‌مپ", "ورونوی"],
+    "formats": ["SVG", "PNG"], "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/voronoi", "buildArgs": ["--base=/studios/voronoi/"],
+    "entry": "/studios/voronoi/index.html", "preview": "/previews/voronoi.svg",
+    "source": "https://github.com/Hhhkarimi/voronoi-treemap-studio", "sourceCommit": "1250c91ef96ea0c8b35976974a28a780a6f4bfa0"
+  },
+  {
+    "id": "chord", "title": "کورد", "englishTitle": "Chord diagram",
+    "category": "flow", "categoryLabel": "جریان و ارتباط", "useCase": "رابطه‌ها را کشف کنید",
+    "description": "وقتی رابطه‌ها مهم‌تر از رتبه‌ها هستند. ارتباط و تبادل میان تیم‌ها، شهرها یا گروه‌ها را ببینید.",
+    "tags": ["رابطه", "ارتباط", "تبادل", "شبکه", "کورد", "چورد"],
+    "formats": ["SVG", "PNG", "JPG"], "inputs": "CSV، ماتریس و ورود دستی",
+    "directory": "apps/chord", "buildArgs": [],
+    "entry": "/studios/chord/index.html", "preview": "/previews/chord.svg",
+    "source": "https://github.com/Hhhkarimi/chord-diagram", "sourceCommit": "3d3d2d0e9d27e1b21e6787b5e26d8146be38c945"
+  },
+  {
+    "id": "iran-map", "title": "نقشهٔ ایران", "englishTitle": "Iran choropleth map",
+    "category": "geo", "categoryLabel": "جغرافیا", "useCase": "تفاوت مکان‌ها را نشان دهید",
+    "description": "داده‌ها روی جغرافیا معنا پیدا می‌کنند. استان‌ها و شهرستان‌ها را بر اساس مقدار داده رنگ‌آمیزی کنید.",
+    "tags": ["ایران", "نقشه", "استان", "شهرستان", "جغرافیا", "پراکندگی"],
+    "formats": ["SVG", "PNG", "JPG"], "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/iran-map", "buildArgs": ["--base=/studios/iran-map/"],
+    "entry": "/studios/iran-map/index.html", "preview": "/previews/iran-map.svg",
+    "source": "https://github.com/Hhhkarimi/IranMapStudio", "sourceCommit": "643a073588f071705668256da4183ca6315a98f0"
+  }
+]

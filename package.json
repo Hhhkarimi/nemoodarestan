@@ -1,0 +1,25 @@
+{
+  "name": "nemoodarestan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "dev": "npm run build && node scripts/serve.mjs",
+    "dev:gallery": "vite --host 127.0.0.1",
+    "install:studios": "node scripts/install-studios.mjs",
+    "build": "tsc --noEmit && vite build && node scripts/build-studios.mjs",
+    "preview": "node scripts/serve.mjs",
+    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "test:studios": "node scripts/test-studios.mjs",
+    "check": "tsc --noEmit && npm test",
+    "build:portable": "node scripts/build-portable.mjs",
+    "previews": "node scripts/generate-previews.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vite": "6.4.1"
+  }
+}

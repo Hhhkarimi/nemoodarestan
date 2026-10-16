@@ -1,0 +1,35 @@
+{
+  "name": "voronoi-treemap-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "build:portable": "node scripts/build-portable.mjs",
+    "test:portable": "node scripts/test-portable.mjs"
+  },
+  "dependencies": {
+    "d3-hierarchy": "^3.1.2",
+    "d3-polygon": "^3.0.1",
+    "d3-voronoi-treemap": "1.1.2",
+    "exceljs": "^4.4.0",
+    "lucide-react": "^0.468.0",
+    "papaparse": "^5.5.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/d3-polygon": "^3.0.2",
+    "@types/papaparse": "^5.3.16",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "esbuild-wasm": "^0.28.2",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}
