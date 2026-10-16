@@ -1,0 +1,26 @@
+/* The series editors reuse the Sankey workspace to preserve the existing interaction and visual language. */
+@import '../../apps/sankey/src/style.css';
+[hidden]{display:none!important}
+.brand h1{white-space:nowrap;font-size:18px}.brand span{letter-spacing:1.3px}
+.workspace{grid-template-columns:360px minmax(0,1fr)}
+.stage .canvas svg{max-height:none;min-height:0;overflow:visible}
+.canvas{padding:12px}.canvas svg [data-group]:hover{filter:brightness(1.08)}
+.canvas svg [data-group]:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.chart-note{color:var(--muted);font-size:12px;line-height:1.9;margin:12px 2px}
+.stats .stat strong{overflow-wrap:anywhere}.stats .stat{min-width:0}
+.flows th:nth-child(3){width:65px}.flows input{font-size:12px;min-height:37px}
+.flows th:last-child{width:25px}.pagination{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;color:var(--muted);font-size:12px}.pagination button{min-width:38px;padding:7px}
+.dropzone{width:100%;display:flex;flex-direction:column;gap:8px}.dropzone>span:first-child{font-size:25px;color:var(--accent)}
+.palette{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:16px}.palette button{min-width:0;font-size:11px;padding:6px;gap:5px}.swatches{min-height:20px}
+.node-color{gap:10px}.node-color>span{overflow-wrap:anywhere;min-width:0;max-width:230px}.node-color input{flex-shrink:0}.selected-color{background:var(--soft);padding:7px;border-radius:6px}
+.font-asset{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.font-asset>span{min-width:0;overflow-wrap:anywhere;font-size:12px}.font-asset button{padding:5px 8px;font-size:11px}
+.series-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.series-dialog-head h2{font-size:18px;margin:0}.series-dialog-head .icon{flex-shrink:0}.guide-prose p{line-height:2;font-size:13px}
+.panel-h2{font-size:15px}.canvas-bottom button{font-size:11px;padding:5px 8px}.canvas-bottom{min-height:48px}
+.sr-only{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:clip;white-space:nowrap}
+.stage:fullscreen{overflow:auto;background:var(--bg);padding:20px}.stage:fullscreen .canvas svg{max-height:calc(100dvh - 200px)}
+.series-dialog-head+div{max-height:65dvh;overflow:auto}.social-links a{min-width:32px;min-height:32px;align-items:center;justify-content:center}
+@media(max-width:1100px){.workspace{grid-template-columns:330px minmax(0,1fr)}}
+@media(max-width:800px){.workspace{grid-template-columns:minmax(0,1fr)}.canvas{padding:6px}.brand h1{font-size:16px}.brand span{font-size:9px}.chart-note{font-size:11px}.top-actions .action-label{display:none}.top-actions button{min-height:36px}.canvas-bottom{font-size:11px}#panel{max-height:650px}}
+@media(max-width:414px){.brand h1{font-size:15px}.brand span{font-size:8px;letter-spacing:.5px}header{padding:0 10px;gap:6px}.brand-mark{width:30px;height:30px}.brand{gap:6px}.top-actions{gap:5px}.top-actions .icon{width:31px;height:33px}.stats .stat strong{font-size:14px}.canvas-top{gap:8px}.canvas-top>span:first-child{font-size:11px}.canvas-bottom{align-items:flex-start}.canvas-bottom>span{min-width:0}#canvas-size{font-size:10px}.field-row{gap:10px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+@media print{.chart-note,#selection,#clear-selection,#toast{display:none!important}.stage .canvas svg{width:100%;max-height:none}.canvas{padding:0}}

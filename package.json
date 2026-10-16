@@ -16,10 +16,17 @@
     "test:studios": "node scripts/test-studios.mjs",
     "check": "tsc --noEmit && npm test",
     "build:portable": "node scripts/build-portable.mjs",
-    "previews": "node scripts/generate-previews.mjs"
+    "previews": "node scripts/generate-previews.mjs && node scripts/generate-series-previews.mjs"
   },
   "devDependencies": {
     "typescript": "~5.9.3",
-    "vite": "6.4.1"
+    "vite": "6.4.1",
+    "@types/d3-shape": "3.1.7",
+    "@types/papaparse": "5.3.16"
+  },
+  "dependencies": {
+    "d3-shape": "3.2.0",
+    "papaparse": "5.5.3",
+    "xlsx": "0.18.5"
   }
 }
