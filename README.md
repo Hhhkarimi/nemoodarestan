@@ -34,7 +34,7 @@ npm run preview
 
 ## انتشار روی Vercel
 
-[ایمپورت ریپو در Vercel](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHhhkarimi%2Fnemoodarestan)
+[ایمپورت ریپو در Vercel](https://vercel.com/new)
 
 ریپو را در Vercel ایمپورت کنید و Root Directory را روی ریشهٔ ریپو نگه دارید. فایل `vercel.json` همهٔ تنظیمات را تعیین می‌کند:
 

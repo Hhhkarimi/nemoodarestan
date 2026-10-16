@@ -2,7 +2,7 @@ import raw from '../catalog.json';
 export interface Chart {
   id: string; title: string; englishTitle: string; category: string; categoryLabel: string;
   useCase: string; description: string; tags: string[]; formats: string[]; inputs: string;
-  directory: string; buildArgs: string[]; entry: string; preview: string; source: string; sourceCommit: string;
+  directory: string; buildArgs: string[]; entry: string; preview: string; source?: string; sourceCommit?: string;
 }
 export const charts: readonly Chart[] = raw;
 export const normalize = (value: string): string => value.normalize('NFKC').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200d\u064b-\u065f]/g,'').toLocaleLowerCase('fa').trim();

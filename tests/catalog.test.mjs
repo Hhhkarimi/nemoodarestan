@@ -11,7 +11,7 @@ test('every registered chart has unique safe routes and a complete local source'
     assert.equal(chart.entry,`/studios/${chart.id}/index.html`);
     assert.ok(chart.title&&chart.description&&chart.categoryLabel);
     assert.ok(chart.formats.includes('SVG')&&chart.formats.includes('PNG'));
-    assert.match(chart.sourceCommit,/^[a-f0-9]{40}$/);
+    if (chart.sourceCommit) assert.match(chart.sourceCommit,/^[a-f0-9]{40}$/);
     await access(new URL(`../${chart.directory}/package-lock.json`,import.meta.url));
     await access(new URL(`../public${chart.preview}`,import.meta.url));
   }
