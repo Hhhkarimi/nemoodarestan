@@ -1,4 +1,4 @@
-export type IconName = 'arrow' | 'arrowUp' | 'search' | 'github' | 'book' | 'close' | 'external' | 'shield' | 'back';
+export type IconName = 'arrow' | 'arrowUp' | 'search' | 'github' | 'book' | 'close' | 'external' | 'shield' | 'back' | 'coffee';
 const paths: Record<IconName, string> = {
   arrow: '<path d="M19 12H5m6-6-6 6 6 6"/>',
   arrowUp: '<path d="M17 17 7 7m0 10V7h10"/>',
@@ -8,6 +8,7 @@ const paths: Record<IconName, string> = {
   close: '<path d="m6 6 12 12M6 18 18 6"/>',
   external: '<path d="M14 3h7v7m0-7L11 13m-1-9H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-5"/>',
   shield: '<path d="M12 3 3 7v5c0 5 9 9 9 9s9-4 9-9V7l-9-4Z"/><path d="m8 12 3 3 5-6"/>',
-  back: '<path d="M5 12h14m-6-6 6 6-6 6"/>'
+  back: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  coffee: '<path d="M4 8h13v7a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Zm13 1h1a3 3 0 0 1 0 6h-1M3 22h17M7 2v3M12 2v3"/>'
 };
 export function icon(name: IconName, size = 18): string { return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`; }

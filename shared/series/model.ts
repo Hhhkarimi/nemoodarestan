@@ -1,7 +1,8 @@
 import { radialSamples, validateRadialRows } from '../radial/math.ts';
 import { comparisonSamples, validateComparisonRows, validateComparisonData } from '../comparison/math.ts';
-export type Kind = 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm';
-export interface Row { x: string; group: string; value: number }
+import { businessSamples, validateBusinessRows, validateBusinessData } from '../business/math.ts';
+export type Kind = 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell';
+export interface Row { x: string; group: string; value: number; second?: number }
 export interface CustomFont { id: string; name: string; dataUrl: string; format: 'woff2' | 'woff' | 'truetype' | 'opentype' }
 export interface Settings {
   title: string; subtitle: string; unit: string; fontFamily: string;
@@ -19,6 +20,9 @@ export interface Settings {
   lineWidth:number; pointRadius:number; valueSize:number; showPoints:boolean; connectMissing:boolean;
   swarmLayout:string; swarmSort:string; axisScale:string; pointPadding:number; autoPointSize:boolean;
   pointLabels:string; showMean:boolean;
+  mekkoOrientation:string; mekkoSort:string; segmentSort:string; mekkoGap:number; showTotals:boolean;
+  mekkoLabel:string; mekkoPercent:string; firstLabel:string; secondLabel:string; pairSort:string;
+  changeLabel:string; includeZero:boolean; connectorStyle:string; connectorColor:string;
 }
 export interface Project { version: 1; kind: Kind; rows: Row[]; settings: Settings; fonts: CustomFont[]; colors: Record<string, string> }
 export const palettes: Record<string, string[]> = {
@@ -35,7 +39,9 @@ export const metadata: Record<Kind, { title: string; english: string; category: 
   sunburst: { title: 'خورشیدی استودیو', english: 'SUNBURST STUDIO', category: 'سلسله‌مراتب در حلقه‌ها' },
   'spiral-heatmap': { title: 'مارپیچی استودیو', english: 'SPIRAL HEATMAP STUDIO', category: 'الگوی زمانی در مسیر مارپیچ' },
   bump: { title: 'تغییر رتبه استودیو', english: 'BUMP CHART STUDIO', category: 'رقابت گروه‌ها در طول زمان' },
-  beeswarm: { title: 'ازدحام نقطه‌ای استودیو', english: 'BEESWARM STUDIO', category: 'هر مشاهده، یک نقطه' }
+  beeswarm: { title: 'ازدحام نقطه‌ای استودیو', english: 'BEESWARM STUDIO', category: 'هر مشاهده، یک نقطه' },
+  marimekko: {title:'موزاییکی استودیو',english:'MARIMEKKO STUDIO',category:'اندازهٔ دسته و سهم زیرگروه‌ها'},
+  dumbbell: {title:'دمبلی استودیو',english:'DUMBBELL STUDIO',category:'مقایسهٔ دو مقدار و فاصلهٔ آن‌ها'}
 };
 export function numberValue(input: unknown): number {
   const text = String(input ?? '').trim().replace(/[۰-۹]/g, c => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c)))
@@ -45,13 +51,13 @@ export function numberValue(input: unknown): number {
 export const hex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 export function defaults(kind: Kind): Settings {
   return {
-    title: ({streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته'})[kind],
-    subtitle: ({streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه'})[kind],
-    unit: ({streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
+    title: ({streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد'})[kind],
+    subtitle: ({streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه'})[kind],
+    unit: ({streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
     titleSize: 28, subtitleSize: 15, fontSize: 14, legendSize: 13,
     width: 1200, height: 760, palette: 'ocean', background: '#ffffff', textColor: '#263d45',
     opacity: .87, strokeWidth: 1, showLegend: true, showLabels: true, showGrid: false,
-    showAxes: true, showValues: kind==='bump', transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
+    showAxes: true, showValues: ['bump','marimekko','dumbbell'].includes(kind), transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
     curve: kind === 'streamgraph' ? 'basis' : 'monotone', offset: 'wiggle', order: 'inside-out', normalize: false,
     bandwidth: 0, overlap: 1.65, densityScale: 'shared', ridgeSort: 'input', showMedian: false,
     innerRadius: .2, rotation: 0, ringGap: 1.5, sunSort: 'input', labelMode: 'horizontal', valueMode: 'percent', focusPath: '',
@@ -61,10 +67,14 @@ export function defaults(kind: Kind): Settings {
     rankInput:'value',rankDirection:'higher',tieMethod:'competition',bumpCurve:'smooth',endLabels:'end',
     lineWidth:3.5,pointRadius:kind==='bump'?7:5,valueSize:11,showPoints:true,connectMissing:false,
     swarmLayout:'grouped',swarmSort:'input',axisScale:'linear',pointPadding:1,autoPointSize:true,
-    pointLabels:'extremes',showMean:false
+    pointLabels:'extremes',showMean:false,
+    mekkoOrientation:'vertical',mekkoSort:'input',segmentSort:'input',mekkoGap:4,showTotals:true,
+    mekkoLabel:'percent',mekkoPercent:'category',firstLabel:'قبل',secondLabel:'بعد',pairSort:'input',
+    changeLabel:'difference',includeZero:false,connectorStyle:'line',connectorColor:'#a5b9b4'
   };
 }
 export function sampleRows(kind: Kind, alternative = false): Row[] {
+  if(kind==='marimekko'||kind==='dumbbell')return businessSamples(kind,alternative);
   if(kind==='bump'||kind==='beeswarm')return comparisonSamples(kind,alternative);
   if(kind==='sunburst'||kind==='spiral-heatmap')return radialSamples(kind,alternative);
   if (kind === 'streamgraph') {
@@ -82,6 +92,7 @@ export function sampleRows(kind: Kind, alternative = false): Row[] {
 }
 export function initial(kind: Kind): Project { return { version: 1, kind, rows: sampleRows(kind), settings: defaults(kind), fonts: [], colors: {} }; }
 export function validateRows(input: unknown, kind: Kind): Row[] {
+  if(kind==='marimekko'||kind==='dumbbell')return validateBusinessRows(input,kind,numberValue);
   if(kind==='bump'||kind==='beeswarm')return validateComparisonRows(input,kind,numberValue);
   if(kind==='sunburst'||kind==='spiral-heatmap')return validateRadialRows(input,kind,numberValue);
   if (!Array.isArray(input) || !input.length) throw Error('حداقل یک ردیف داده وارد کنید.');
@@ -110,7 +121,7 @@ const numericRanges: Partial<Record<keyof Settings, [number, number]>> = {
   width: [600,2400], height: [400,1800], titleSize: [14,60], subtitleSize: [10,32], fontSize: [9,28], legendSize: [9,24],
   opacity: [.1,1], strokeWidth: [0,4], decimals: [0,3], bandwidth: [0,1e12], overlap: [.5,4],
   innerRadius:[.08,.45],rotation:[-180,180],ringGap:[0,8],slotsPerTurn:[3,366],domainMin:[-1e12,1e12],domainMax:[-1e12,1e12],
-  lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5]
+  lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14]
 };
 export function parseProject(input: unknown, kind: Kind): Project {
   if (!input || typeof input !== 'object') throw Error('فایل پروژه معتبر نیست.');
@@ -128,14 +139,17 @@ export function parseProject(input: unknown, kind: Kind): Project {
   settings.slotsPerTurn=Math.round(settings.slotsPerTurn);
   for (const key of ['title','subtitle','unit'] as const) settings[key] = settings[key].slice(0, key === 'subtitle' ? 180 : 100);
   settings.focusPath=settings.focusPath.slice(0,647);
+  settings.firstLabel=settings.firstLabel.trim().slice(0,40);settings.secondLabel=settings.secondLabel.trim().slice(0,40);
   if (!Object.hasOwn(palettes,settings.palette)) settings.palette = 'ocean';
-  for (const key of ['background','textColor','lowColor','highColor','missingColor'] as const) if (!hex(settings[key])) settings[key] = defaults(kind)[key];
+  for (const key of ['background','textColor','lowColor','highColor','missingColor','connectorColor'] as const) if (!hex(settings[key])) settings[key] = defaults(kind)[key];
   const choices: Partial<Record<keyof Settings,string[]>> = { direction:['ltr','rtl'], digits:['fa','en'], curve:['basis','monotone','linear','step'], offset:['wiggle','silhouette','zero'], order:['inside-out','input','total','reverse'], densityScale:['shared','individual'], ridgeSort:['input','mean','median','reverse'] };
   for (const [key, values] of Object.entries(choices)) if (!values.includes(String(target[key]))) target[key] = (defaults(kind) as unknown as Record<string, unknown>)[key];
   const radialChoices:Partial<Record<keyof Settings,string[]>>={sunSort:['input','value','name'],labelMode:['horizontal','radial','none'],valueMode:['value','percent','parent'],timeUnit:['hour','day','month'],aggregation:['mean','sum','max'],calendar:['persian','gregory'],heatPalette:['teal','amber','purple','diverging','custom']};
   for(const [key,values] of Object.entries(radialChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const comparisonChoices:Partial<Record<keyof Settings,string[]>>={rankInput:['value','rank'],rankDirection:['higher','lower'],tieMethod:['competition','dense','average'],bumpCurve:['smooth','linear','step'],endLabels:['end','both','none'],swarmLayout:['grouped','combined'],swarmSort:['input','median','name'],axisScale:['linear','log'],pointLabels:['extremes','none','all']};
   for(const [key,values] of Object.entries(comparisonChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
+  const businessChoices:Partial<Record<keyof Settings,string[]>>={mekkoOrientation:['vertical','horizontal'],mekkoSort:['input','total','name'],segmentSort:['input','total','name'],mekkoLabel:['percent','value','both'],mekkoPercent:['category','total'],pairSort:['input','name','first','second','change','gap','percent'],changeLabel:['difference','percent','both','none'],connectorStyle:['line','arrow']};
+  for(const [key,values] of Object.entries(businessChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const fonts: CustomFont[] = [];
   if (Array.isArray(p.fonts)) for (const item of p.fonts) {
     if (!item || typeof item !== 'object') continue;
@@ -147,12 +161,15 @@ export function parseProject(input: unknown, kind: Kind): Project {
   const colors: Record<string,string> = {};
   if (p.colors && typeof p.colors === 'object') for (const [name, color] of Object.entries(p.colors)) if (hex(color) && !['__proto__','constructor','prototype'].includes(name)) colors[name] = color;
   const rows=validateRows(p.rows,kind);if(kind==='bump'||kind==='beeswarm')validateComparisonData(rows,kind,settings);
+  if(kind==='marimekko'||kind==='dumbbell')validateBusinessData(rows,kind,settings);
   return { version:1, kind, rows, settings, fonts, colors };
 }
 export function colorFor(project: Project, group: string): string {
+  if(project.kind==='dumbbell')return Object.hasOwn(project.colors,group)?project.colors[group]:palettes[project.settings.palette][group==='second'?2:0];
   const groups = [...new Set(project.rows.map(r => r.group))];
   return Object.hasOwn(project.colors,group) ? project.colors[group] : palettes[project.settings.palette][groups.indexOf(group) % palettes[project.settings.palette].length];
 }
+export function colorLabel(project:Project,group:string):string{return project.kind==='dumbbell'?(group==='first'?project.settings.firstLabel:project.settings.secondLabel):group;}
 export function format(project: Project, value: number): string {
   return new Intl.NumberFormat(project.settings.digits === 'fa' ? 'fa-IR' : 'en-US',{ maximumFractionDigits:project.settings.decimals }).format(value);
 }

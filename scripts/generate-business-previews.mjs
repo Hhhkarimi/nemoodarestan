@@ -1,0 +1,12 @@
+import {writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {initial} from '../shared/series/model.ts';
+import {mekkoCells,mekkoTable,pairs} from '../shared/business/math.ts';
+import {root} from './run.mjs';
+const colors=['#468b6f','#c5ce88','#dca265','#aaa0c4'];
+const wrap=content=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 324">${content}</svg>`;
+const p=initial('marimekko'),table=mekkoTable(p.rows,p.settings),cells=mekkoCells(table,510,6);
+await writeFile(resolve(root,'public/previews/marimekko.svg'),wrap(cells.filter(c=>c.value>0).map(c=>`<rect x="${45+c.start}" y="${282-c.high*240}" width="${c.size}" height="${c.share*240}" fill="${colors[table.groups.indexOf(c.group)]}" stroke="#faf9f5" stroke-width="1.5"/>`).join('')));
+const d=initial('dumbbell'),data=pairs(d.rows,'input'),all=data.flatMap(p=>[p.first,p.second]),lo=Math.min(...all),hi=Math.max(...all),x=value=>60+(value-lo)/(hi-lo)*480;
+await writeFile(resolve(root,'public/previews/dumbbell.svg'),wrap(data.map((p,i)=>{const y=42+i*40;return `<path d="M45 ${y}H555" stroke="#e2e6df"/><path d="M${x(p.first)} ${y}H${x(p.second)}" stroke="#a1b3a7" stroke-width="4"/><circle cx="${x(p.first)}" cy="${y}" r="7" fill="#468b6f"/><circle cx="${x(p.second)}" cy="${y}" r="7" fill="#dca265"/>`;}).join('')));
+console.log('Marimekko and Dumbbell previews generated from sample data.');

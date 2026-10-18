@@ -297,5 +297,67 @@
     ],
     "entry": "/studios/beeswarm/index.html",
     "preview": "/previews/beeswarm.svg"
+  },
+  {
+    "id": "marimekko",
+    "title": "موزاییکی",
+    "englishTitle": "Marimekko Chart",
+    "category": "part",
+    "categoryLabel": "سهم و ترکیب",
+    "useCase": "اندازه و سهم را با هم ببینید",
+    "description": "اندازهٔ بازار و سهم برندها در یک تصویر؛ عرض هر دسته مجموع آن و مساحت هر بخش مقدار زیرگروه را نشان می‌دهد.",
+    "tags": [
+      "موزاییک",
+      "موزاییکی",
+      "سهم",
+      "بازار",
+      "مکو",
+      "marimekko",
+      "mekko"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/marimekko",
+    "buildArgs": [
+      "--base=/studios/marimekko/"
+    ],
+    "entry": "/studios/marimekko/index.html",
+    "preview": "/previews/marimekko.svg"
+  },
+  {
+    "id": "dumbbell",
+    "title": "دمبلی",
+    "englishTitle": "Dumbbell Chart",
+    "category": "comparison",
+    "categoryLabel": "مقایسه",
+    "useCase": "فاصلهٔ دو مقدار را مقایسه کنید",
+    "description": "قبل و بعد، بودجه و عملکرد یا دو دوره؛ مقدار هر دو سری و اختلاف آن‌ها را روی یک محور مشترک نشان دهید.",
+    "tags": [
+      "دمبل",
+      "دمبلی",
+      "مقایسه",
+      "تغییر",
+      "قبل",
+      "بعد",
+      "بودجه",
+      "dumbbell",
+      "range"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/dumbbell",
+    "buildArgs": [
+      "--base=/studios/dumbbell/"
+    ],
+    "entry": "/studios/dumbbell/index.html",
+    "preview": "/previews/dumbbell.svg"
   }
 ]

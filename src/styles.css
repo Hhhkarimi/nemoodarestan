@@ -158,3 +158,14 @@ dialog::backdrop{background:var(--color-backdrop)}
 
 .wide-label{display:none}.narrow-label{display:inline}
 @media(min-width:40rem){.wide-label{display:inline}.narrow-label{display:none}}
+
+/* A visible support link stays available while editing; the supplied banner lives in the gallery. */
+.support-link{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:5px 10px;border:1px solid var(--color-line);border-radius:var(--radius-sm);background:var(--color-accent-soft);color:var(--color-accent);font-size:var(--text-xs);font-weight:650}
+.header-nav .support-link{padding-inline:10px;min-height:38px}
+.support-link:hover{border-color:var(--color-accent)}
+.support-strip{display:grid;gap:var(--space-md);align-items:center;border-block:1px solid var(--color-line);padding-block:var(--space-md);margin-bottom:var(--space-sm)}
+.support-strip h2{font-size:var(--text-md);font-weight:700}.support-strip p{font-size:var(--text-sm);color:var(--color-muted);margin-top:var(--space-xs)}
+.support-strip .text-link{min-height:36px;font-size:var(--text-xs)}
+.support-banner{display:block;max-width:468px;width:100%;white-space:normal}.support-banner img{display:block;width:100%;height:auto;aspect-ratio:468/100}
+@media(min-width:60rem){.support-strip{grid-template-columns:minmax(0,1fr) 468px;gap:var(--space-xl)}}
+@media(max-width:39.99rem){.header-inner{flex-wrap:wrap;padding-block:12px;gap:8px}.header-inner .brand{font-size:1.25rem;gap:8px}.header-nav{gap:12px}.header-nav [data-guide] svg{display:none}.header-nav .support-link{padding-inline:8px}}
