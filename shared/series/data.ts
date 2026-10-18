@@ -4,9 +4,11 @@ import type { Kind, Row, Settings } from './model.ts';
 import { radialMatrix, treeRows } from '../radial/data.ts';
 import { comparisonMatrix } from '../comparison/data.ts';
 import { businessMatrix } from '../business/data.ts';
+import {motionMatrix} from '../motion/data.ts';
 const normalize=(value:unknown):string=>String(value??'').trim().replace(/^\uFEFF/,'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\s\u200c_-]/g,'').toLowerCase();
 const aliases={group:['گروه','دسته','group','category','series','تیم'],x:['دوره','زمان','تاریخ','period','time','date','x'],value:['مقدار','مشاهده','value','amount','observation'],weight:['وزن','فراوانی','تعداد','weight','count','frequency']};
 export function parseMatrix(matrix: unknown[][], kind: Kind): Row[] {
+  if(kind==='bar-chart-race'||kind==='circle-packing')return motionMatrix(matrix,kind);
   if(kind==='marimekko'||kind==='dumbbell')return businessMatrix(matrix,kind);
   if(kind==='bump'||kind==='beeswarm')return comparisonMatrix(matrix,kind);
   if(kind==='sunburst'||kind==='spiral-heatmap')return radialMatrix(matrix,kind);
@@ -32,7 +34,7 @@ export function parseText(text: string, kind: Kind): Row[] {
   if(!text.trim())throw Error('متنی برای ورود داده وجود ندارد.');
   if(/^[\s\uFEFF]*[\[{]/.test(text)){
     const parsed:unknown=JSON.parse(text.replace(/^\uFEFF/,''));
-    if(kind==='sunburst'&&parsed&&typeof parsed==='object'&&!Array.isArray(parsed)&&'name' in parsed)return treeRows(parsed);
+    if((kind==='sunburst'||kind==='circle-packing')&&parsed&&typeof parsed==='object'&&!Array.isArray(parsed)&&'name' in parsed)return treeRows(parsed);
     const rows=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==='object'&&'rows' in parsed?(parsed as {rows:unknown}).rows:undefined);
     if(!Array.isArray(rows))throw Error('JSON باید آرایه‌ای از ردیف‌ها باشد.');
     if(rows.every(row=>row&&typeof row==='object'&&'x' in row&&'group' in row&&'value' in row))return validateRows(rows,kind);
@@ -44,12 +46,15 @@ export function parseText(text: string, kind: Kind): Row[] {
   return parseMatrix(parsed.data,kind);
 }
 export function dataCSV(rows: Row[], kind: Kind,settings?:Partial<Settings>): string {
+  if(kind==='bar-chart-race'||kind==='circle-packing')return Papa.unparse(dataMatrix(rows,kind,settings));
   if(kind==='marimekko'||kind==='dumbbell')return Papa.unparse(dataMatrix(rows,kind,settings));
   if(kind==='bump'||kind==='beeswarm')return Papa.unparse(dataMatrix(rows,kind,settings));
   if(kind==='sunburst'||kind==='spiral-heatmap')return Papa.unparse(dataMatrix(rows,kind));
   return kind==='streamgraph'?Papa.unparse([['دوره','گروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])]):Papa.unparse([['گروه','مقدار','وزن'],...rows.map(r=>[r.group,r.x,r.value])]);
 }
 export function dataMatrix(rows:Row[],kind:Kind,settings?:Partial<Settings>):(string|number)[][]{
+  if(kind==='bar-chart-race')return [['دوره','گروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])];
+  if(kind==='circle-packing')return [['مسیر','مقدار'],...rows.map(r=>[r.x,r.value])];
   if(kind==='marimekko')return [['دسته','زیرگروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])];
   if(kind==='dumbbell')return [['نام',`مقدار اول: ${settings?.firstLabel||'قبل'}`,`مقدار دوم: ${settings?.secondLabel||'بعد'}`],...rows.map(r=>[r.x,r.value,r.second!])];
   if(kind==='bump')return [['دوره','گروه',settings?.rankInput==='rank'?'رتبه':'مقدار'],...rows.map(r=>[r.x,r.group,r.value])];

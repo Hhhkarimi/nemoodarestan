@@ -1,7 +1,9 @@
 import { radialSamples, validateRadialRows } from '../radial/math.ts';
 import { comparisonSamples, validateComparisonRows, validateComparisonData } from '../comparison/math.ts';
 import { businessSamples, validateBusinessRows, validateBusinessData } from '../business/math.ts';
-export type Kind = 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell';
+import {motionSamples,validateMotionRows,raceTable} from '../motion/math.ts';
+import {parseLogos} from '../motion/data.ts';
+export type Kind = 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell' | 'bar-chart-race' | 'circle-packing';
 export interface Row { x: string; group: string; value: number; second?: number }
 export interface CustomFont { id: string; name: string; dataUrl: string; format: 'woff2' | 'woff' | 'truetype' | 'opentype' }
 export interface Settings {
@@ -23,8 +25,10 @@ export interface Settings {
   mekkoOrientation:string; mekkoSort:string; segmentSort:string; mekkoGap:number; showTotals:boolean;
   mekkoLabel:string; mekkoPercent:string; firstLabel:string; secondLabel:string; pairSort:string;
   changeLabel:string; includeZero:boolean; connectorStyle:string; connectorColor:string;
+  racePosition:number; raceDuration:number; raceTopN:number; raceScale:string; raceMissing:string; raceLoop:boolean; raceTimeSize:number; showLogos:boolean;
+  packSort:string; packPadding:number; packLabels:string; showContainers:boolean;
 }
-export interface Project { version: 1; kind: Kind; rows: Row[]; settings: Settings; fonts: CustomFont[]; colors: Record<string, string> }
+export interface Project { version: 1; kind: Kind; rows: Row[]; settings: Settings; fonts: CustomFont[]; colors: Record<string, string>; logos?:Record<string,string> }
 export const palettes: Record<string, string[]> = {
   ocean: ['#168879','#55ad96','#4d8cb5','#e9b754','#9786ba','#dc8972','#5697a4','#758aa8'],
   forest: ['#285943','#4e8262','#78a279','#a3bb83','#c9d6a5','#dca96b','#a97453'],
@@ -41,6 +45,8 @@ export const metadata: Record<Kind, { title: string; english: string; category: 
   bump: { title: 'تغییر رتبه استودیو', english: 'BUMP CHART STUDIO', category: 'رقابت گروه‌ها در طول زمان' },
   beeswarm: { title: 'ازدحام نقطه‌ای استودیو', english: 'BEESWARM STUDIO', category: 'هر مشاهده، یک نقطه' },
   marimekko: {title:'موزاییکی استودیو',english:'MARIMEKKO STUDIO',category:'اندازهٔ دسته و سهم زیرگروه‌ها'},
+  'bar-chart-race':{title:'مسابقهٔ میله‌ای استودیو',english:'BAR CHART RACE STUDIO',category:'رقابت گروه‌ها در گذر زمان'},
+  'circle-packing':{title:'حبابی تودرتو استودیو',english:'CIRCLE PACKING STUDIO',category:'سلسله‌مراتب در دایره‌های تودرتو'},
   dumbbell: {title:'دمبلی استودیو',english:'DUMBBELL STUDIO',category:'مقایسهٔ دو مقدار و فاصلهٔ آن‌ها'}
 };
 export function numberValue(input: unknown): number {
@@ -51,13 +57,13 @@ export function numberValue(input: unknown): number {
 export const hex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 export function defaults(kind: Kind): Settings {
   return {
-    title: ({streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد'})[kind],
-    subtitle: ({streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه'})[kind],
-    unit: ({streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
+    title: ({streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد','bar-chart-race':'رقابت برندها در گذر ماه‌ها','circle-packing':'ترکیب فروش در دایره‌ها'})[kind],
+    subtitle: ({streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه','bar-chart-race':'فروش هشت برند در هشت ماه · داده‌های نمونه','circle-packing':'از بازار تا دسته و محصول · داده‌های نمونه'})[kind],
+    unit: ({streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان','bar-chart-race':'میلیون تومان','circle-packing':'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
     titleSize: 28, subtitleSize: 15, fontSize: 14, legendSize: 13,
     width: 1200, height: 760, palette: 'ocean', background: '#ffffff', textColor: '#263d45',
     opacity: .87, strokeWidth: 1, showLegend: true, showLabels: true, showGrid: false,
-    showAxes: true, showValues: ['bump','marimekko','dumbbell'].includes(kind), transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
+    showAxes: true, showValues: ['bump','marimekko','dumbbell','bar-chart-race','circle-packing'].includes(kind), transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
     curve: kind === 'streamgraph' ? 'basis' : 'monotone', offset: 'wiggle', order: 'inside-out', normalize: false,
     bandwidth: 0, overlap: 1.65, densityScale: 'shared', ridgeSort: 'input', showMedian: false,
     innerRadius: .2, rotation: 0, ringGap: 1.5, sunSort: 'input', labelMode: 'horizontal', valueMode: 'percent', focusPath: '',
@@ -65,15 +71,18 @@ export function defaults(kind: Kind): Settings {
     heatPalette: 'teal', reverseColors: false, autoDomain: true, domainMin: 0, domainMax: 100,
     lowColor: '#e9f2eb', highColor: '#12675e', missingColor: '#dce1e4',
     rankInput:'value',rankDirection:'higher',tieMethod:'competition',bumpCurve:'smooth',endLabels:'end',
-    lineWidth:3.5,pointRadius:kind==='bump'?7:5,valueSize:11,showPoints:true,connectMissing:false,
+    lineWidth:3.5,pointRadius:kind==='bump'?7:5,valueSize:kind==='bar-chart-race'?14:11,showPoints:true,connectMissing:false,
     swarmLayout:'grouped',swarmSort:'input',axisScale:'linear',pointPadding:1,autoPointSize:true,
     pointLabels:'extremes',showMean:false,
     mekkoOrientation:'vertical',mekkoSort:'input',segmentSort:'input',mekkoGap:4,showTotals:true,
     mekkoLabel:'percent',mekkoPercent:'category',firstLabel:'قبل',secondLabel:'بعد',pairSort:'input',
-    changeLabel:'difference',includeZero:false,connectorStyle:'line',connectorColor:'#a5b9b4'
+    changeLabel:'difference',includeZero:false,connectorStyle:'line',connectorColor:'#a5b9b4',
+    racePosition:0,raceDuration:1.5,raceTopN:8,raceScale:'global',raceMissing:'hide',raceLoop:false,raceTimeSize:36,showLogos:true,
+    packSort:'value',packPadding:5,packLabels:'leaves',showContainers:true
   };
 }
 export function sampleRows(kind: Kind, alternative = false): Row[] {
+  if(kind==='bar-chart-race'||kind==='circle-packing')return motionSamples(kind,alternative);
   if(kind==='marimekko'||kind==='dumbbell')return businessSamples(kind,alternative);
   if(kind==='bump'||kind==='beeswarm')return comparisonSamples(kind,alternative);
   if(kind==='sunburst'||kind==='spiral-heatmap')return radialSamples(kind,alternative);
@@ -90,8 +99,9 @@ export function sampleRows(kind: Kind, alternative = false): Row[] {
     return { group, x: String(Number((Math.max(.5, 14 + g * 5 + normal * (3 + g * .7) + (i % 7 === 0 ? 10 : 0))).toFixed(2))), value: 1 };
   }));
 }
-export function initial(kind: Kind): Project { return { version: 1, kind, rows: sampleRows(kind), settings: defaults(kind), fonts: [], colors: {} }; }
+export function initial(kind: Kind): Project { return { version: 1, kind, rows: sampleRows(kind), settings: defaults(kind), fonts: [], colors: {},...(kind==='bar-chart-race'?{logos:{}}:{}) }; }
 export function validateRows(input: unknown, kind: Kind): Row[] {
+  if(kind==='bar-chart-race'||kind==='circle-packing')return validateMotionRows(input,kind,numberValue);
   if(kind==='marimekko'||kind==='dumbbell')return validateBusinessRows(input,kind,numberValue);
   if(kind==='bump'||kind==='beeswarm')return validateComparisonRows(input,kind,numberValue);
   if(kind==='sunburst'||kind==='spiral-heatmap')return validateRadialRows(input,kind,numberValue);
@@ -121,7 +131,7 @@ const numericRanges: Partial<Record<keyof Settings, [number, number]>> = {
   width: [600,2400], height: [400,1800], titleSize: [14,60], subtitleSize: [10,32], fontSize: [9,28], legendSize: [9,24],
   opacity: [.1,1], strokeWidth: [0,4], decimals: [0,3], bandwidth: [0,1e12], overlap: [.5,4],
   innerRadius:[.08,.45],rotation:[-180,180],ringGap:[0,8],slotsPerTurn:[3,366],domainMin:[-1e12,1e12],domainMax:[-1e12,1e12],
-  lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14]
+  lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14],racePosition:[0,119],raceDuration:[.5,10],raceTopN:[1,20],raceTimeSize:[18,60],packPadding:[0,20]
 };
 export function parseProject(input: unknown, kind: Kind): Project {
   if (!input || typeof input !== 'object') throw Error('فایل پروژه معتبر نیست.');
@@ -136,7 +146,7 @@ export function parseProject(input: unknown, kind: Kind): Project {
     target[key] = Number.isFinite(n) ? Math.max(limits[0], Math.min(limits[1], n)) : (defaults(kind) as unknown as Record<string, unknown>)[key];
   }
   settings.width = Math.round(settings.width); settings.height = Math.round(settings.height); settings.decimals = Math.round(settings.decimals);
-  settings.slotsPerTurn=Math.round(settings.slotsPerTurn);
+  settings.slotsPerTurn=Math.round(settings.slotsPerTurn);settings.raceTopN=Math.round(settings.raceTopN);
   for (const key of ['title','subtitle','unit'] as const) settings[key] = settings[key].slice(0, key === 'subtitle' ? 180 : 100);
   settings.focusPath=settings.focusPath.slice(0,647);
   settings.firstLabel=settings.firstLabel.trim().slice(0,40);settings.secondLabel=settings.secondLabel.trim().slice(0,40);
@@ -150,6 +160,8 @@ export function parseProject(input: unknown, kind: Kind): Project {
   for(const [key,values] of Object.entries(comparisonChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const businessChoices:Partial<Record<keyof Settings,string[]>>={mekkoOrientation:['vertical','horizontal'],mekkoSort:['input','total','name'],segmentSort:['input','total','name'],mekkoLabel:['percent','value','both'],mekkoPercent:['category','total'],pairSort:['input','name','first','second','change','gap','percent'],changeLabel:['difference','percent','both','none'],connectorStyle:['line','arrow']};
   for(const [key,values] of Object.entries(businessChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
+  const motionChoices:Partial<Record<keyof Settings,string[]>>={raceScale:['global','period'],raceMissing:['hide','zero','carry'],packSort:['input','value','name'],packLabels:['leaves','groups','both','none']};
+  for(const [key,values] of Object.entries(motionChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const fonts: CustomFont[] = [];
   if (Array.isArray(p.fonts)) for (const item of p.fonts) {
     if (!item || typeof item !== 'object') continue;
@@ -162,7 +174,8 @@ export function parseProject(input: unknown, kind: Kind): Project {
   if (p.colors && typeof p.colors === 'object') for (const [name, color] of Object.entries(p.colors)) if (hex(color) && !['__proto__','constructor','prototype'].includes(name)) colors[name] = color;
   const rows=validateRows(p.rows,kind);if(kind==='bump'||kind==='beeswarm')validateComparisonData(rows,kind,settings);
   if(kind==='marimekko'||kind==='dumbbell')validateBusinessData(rows,kind,settings);
-  return { version:1, kind, rows, settings, fonts, colors };
+  if(kind==='bar-chart-race')settings.racePosition=Math.min(settings.racePosition,raceTable(rows,settings.raceMissing).periods.length-1);
+  return { version:1, kind, rows, settings, fonts, colors,...(kind==='bar-chart-race'?{logos:parseLogos(p.logos)}:{}) };
 }
 export function colorFor(project: Project, group: string): string {
   if(project.kind==='dumbbell')return Object.hasOwn(project.colors,group)?project.colors[group]:palettes[project.settings.palette][group==='second'?2:0];

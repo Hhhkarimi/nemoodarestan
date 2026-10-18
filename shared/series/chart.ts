@@ -7,6 +7,7 @@ import { family } from './fonts.ts';
 import { renderRadial } from '../radial/chart.ts';
 import { renderComparison } from '../comparison/chart.ts';
 import { renderBusiness } from '../business/chart.ts';
+import {renderMotion} from '../motion/chart.ts';
 const ns = 'http://www.w3.org/2000/svg';
 type Attributes = Record<string,string | number>;
 function node<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attributes = {}, text?: string): SVGElementTagNameMap[K] {
@@ -18,6 +19,7 @@ function node<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attributes = 
 const scale = (a: number,b: number,c: number,d: number) => (x: number): number => c+(x-a)/(b-a || 1)*(d-c);
 export interface ChartResult { svg: SVGSVGElement; summaries: {label:string;value:string}[]; note: string; bandwidth?: number }
 export function renderChart(project: Project, selectGroup?: (group: string) => void): ChartResult {
+  if(project.kind==='bar-chart-race'||project.kind==='circle-packing')return renderMotion(project,selectGroup);
   if(project.kind==='marimekko'||project.kind==='dumbbell')return renderBusiness(project,selectGroup);
   if(project.kind==='bump'||project.kind==='beeswarm')return renderComparison(project,selectGroup);
   if(project.kind==='sunburst'||project.kind==='spiral-heatmap')return renderRadial(project,selectGroup);

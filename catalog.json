@@ -359,5 +359,67 @@
     ],
     "entry": "/studios/dumbbell/index.html",
     "preview": "/previews/dumbbell.svg"
+  },
+  {
+    "id": "bar-chart-race",
+    "title": "مسابقهٔ میله‌ای",
+    "englishTitle": "Bar Chart Race",
+    "category": "time",
+    "categoryLabel": "روند زمانی",
+    "useCase": "رقابت را در گذر زمان پخش کنید",
+    "description": "میله‌های متحرک برای نمایش رشد و جابه‌جایی رتبه‌ها؛ رقابت برندها، فروش استان‌ها یا تغییر جمعیت را با کنترل زمان و لوگوی هر گروه نشان دهید.",
+    "tags": [
+      "مسابقه",
+      "میله",
+      "متحرک",
+      "رقابت",
+      "ویدیو",
+      "رتبه",
+      "bar",
+      "race"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG",
+      "WebM"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/bar-chart-race",
+    "buildArgs": [
+      "--base=/studios/bar-chart-race/"
+    ],
+    "entry": "/studios/bar-chart-race/index.html",
+    "preview": "/previews/bar-chart-race.svg"
+  },
+  {
+    "id": "circle-packing",
+    "title": "حبابی تودرتو",
+    "englishTitle": "Circle Packing",
+    "category": "part",
+    "categoryLabel": "سهم و ترکیب",
+    "useCase": "ساختار داده را در دایره‌ها ببینید",
+    "description": "دسته‌ها و زیرگروه‌ها در دایره‌های تودرتو؛ ترکیب فروش، محصولات یا هزینه را با حباب‌های متناسب و بزرگ‌نمایی شاخه‌ها کشف کنید.",
+    "tags": [
+      "حباب",
+      "دایره",
+      "تودرتو",
+      "سلسله‌مراتب",
+      "سهم",
+      "circle",
+      "packing"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/circle-packing",
+    "buildArgs": [
+      "--base=/studios/circle-packing/"
+    ],
+    "entry": "/studios/circle-packing/index.html",
+    "preview": "/previews/circle-packing.svg"
   }
 ]

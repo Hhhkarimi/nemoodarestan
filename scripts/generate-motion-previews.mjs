@@ -1,0 +1,12 @@
+import {writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {initial} from '../shared/series/model.ts';
+import {packingLayout,raceFrame,raceTable} from '../shared/motion/math.ts';
+import {root} from './run.mjs';
+const colors=['#468b6f','#c5ce88','#dca265','#aaa0c4','#80aab5','#9cb29c','#c88372','#77999c'];
+const wrap=content=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 324">${content}</svg>`;
+const race=initial('bar-chart-race'),table=raceTable(race.rows,'hide'),frame=raceFrame(table,4,'global');
+await writeFile(resolve(root,'public/previews/bar-chart-race.svg'),wrap(frame.bars.filter(b=>b.rank<6).map(b=>`<rect x="65" y="${35+b.rank*43}" width="${b.value/frame.max*470}" height="29" rx="2" fill="${colors[table.groups.indexOf(b.group)]}"/><path d="M${65+b.value/frame.max*470+9} ${49+b.rank*43}h15" stroke="#b9c5b8" stroke-width="3"/>`).join('')));
+const circles=initial('circle-packing'),tree=packingLayout(circles.rows,{...circles.settings,packPadding:5},290),groups=[...new Set(circles.rows.map(r=>r.group))];
+await writeFile(resolve(root,'public/previews/circle-packing.svg'),wrap(tree.descendants().filter(n=>n!==tree).map(n=>`<circle cx="${155+n.x}" cy="${17+n.y}" r="${n.r}" fill="${colors[groups.indexOf(n.data.group)]}" fill-opacity="${n.children?.length?.08:.9}" stroke="${n.children?.length?colors[groups.indexOf(n.data.group)]:'#faf9f5'}" stroke-width="1.5"/>`).join('')));
+console.log('Bar Chart Race and Circle Packing previews generated from sample data.');
