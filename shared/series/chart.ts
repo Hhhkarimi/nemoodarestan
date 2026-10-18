@@ -5,6 +5,7 @@ import type { Project } from './model.ts';
 import { distributions, streamTable } from './math.ts';
 import { family } from './fonts.ts';
 import { renderRadial } from '../radial/chart.ts';
+import { renderComparison } from '../comparison/chart.ts';
 const ns = 'http://www.w3.org/2000/svg';
 type Attributes = Record<string,string | number>;
 function node<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attributes = {}, text?: string): SVGElementTagNameMap[K] {
@@ -16,6 +17,7 @@ function node<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attributes = 
 const scale = (a: number,b: number,c: number,d: number) => (x: number): number => c+(x-a)/(b-a || 1)*(d-c);
 export interface ChartResult { svg: SVGSVGElement; summaries: {label:string;value:string}[]; note: string; bandwidth?: number }
 export function renderChart(project: Project, selectGroup?: (group: string) => void): ChartResult {
+  if(project.kind==='bump'||project.kind==='beeswarm')return renderComparison(project,selectGroup);
   if(project.kind==='sunburst'||project.kind==='spiral-heatmap')return renderRadial(project,selectGroup);
   const s = project.settings, w = s.width, h = s.height;
   const svg = node('svg',{xmlns:ns,viewBox:`0 0 ${w} ${h}`,width:w,height:h,role:'img','aria-label':s.title || 'نمودار'});

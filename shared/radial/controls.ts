@@ -1,11 +1,13 @@
 import type { Kind, Project, Row, Settings } from '../series/model.ts';
 import { flatten, hierarchy } from './math.ts';
+import { comparisonInfo } from '../comparison/controls.ts';
 interface Controls {
   field:(label:string,key:keyof Settings,type?:string,extra?:string)=>string;
   choice:(label:string,key:keyof Settings,items:[string,string][])=>string;
   toggle:(label:string,key:keyof Settings)=>string;
 }
 export function editorInfo(kind:Kind):{noun:string;samples:[string,string];help:string;columns:string[];keys:(keyof Row)[];guide:string}{
+  if(kind==='bump'||kind==='beeswarm')return comparisonInfo(kind);
   if(kind==='sunburst')return {noun:'بخش',samples:['ترکیب فروش بازارها','سبد هزینهٔ سازمان'],columns:['مسیر','مقدار'],keys:['x','value'],help:'هر ردیف یک برگ است؛ مسیر را با / جدا کنید، مانند داخلی/دیجیتال/اشتراک. جمع شاخه‌ها خودکار است؛ ردیف‌های یک مسیر جمع می‌شوند. JSON درختی با name، children و value نیز پذیرفته می‌شود.',guide:'اندازهٔ زاویهٔ هر بخش متناسب با مقدار آن است. فقط برگ‌ها مقدار دارند. از «نمایش شاخه» به زیرمجموعه بروید؛ مرکز نمودار شما را یک سطح بالا می‌برد. دوبار کلیک روی شاخه نیز آن را باز می‌کند.'};
   if(kind==='spiral-heatmap')return {noun:'خانه',samples:['فعالیت روزانه؛ چرخهٔ ۳۰ روزه','فعالیت روزانه؛ چرخهٔ هفتگی'],columns:['تاریخ','مقدار'],keys:['x','value'],help:'ستون‌ها: تاریخ میلادی (YYYY-MM-DD) و مقدار. ساعت با YYYY-MM-DDTHH:mm پذیرفته می‌شود. نمایش تاریخ می‌تواند شمسی باشد. فاصله‌های بدون داده خاکستری می‌مانند؛ مقدار صفر با نبود داده متفاوت است.',guide:'مسیر از داخل به بیرون، به ترتیب زمان پیش می‌رود. رنگ مقدار را نشان می‌دهد؛ هر دور تعداد ثابتی خانه دارد. تعداد خانهٔ هر دور، واحد زمان و روش تجمیع زمان‌های تکراری قابل تنظیم است. هر دور ۳۰ روز الزاماً یک ماه تقویمی نیست.'};
   return kind==='streamgraph'?{noun:'لایه',samples:['کانال‌های ارتباطی','فروش محصولات'],columns:['دوره','گروه','مقدار'],keys:['x','group','value'],help:'هر ردیف یک مقدار در یک دوره و گروه است. دوره‌ها به ترتیب ورود و با فاصلهٔ یکسان نمایش داده می‌شوند؛ ردیف‌های تکراری جمع می‌شوند.',guide:'مقادیر منفی برای نمودار رودخانه‌ای پذیرفته نمی‌شوند. در مبنای رودخانه‌ای، ضخامت هر لایه معنا دارد و موقعیت عمودی آن مقدار مطلق نیست.'}:{noun:'قله',samples:['زمان پاسخ‌گویی تیم‌ها','مقایسهٔ دوره‌ها'],columns:['گروه','مقدار','وزن'],keys:['group','x','value'],help:'هر ردیف یک مشاهده از یک گروه است. برای فراوانی یا اهمیت متفاوت، وزن را تغییر دهید؛ وزن پیش‌فرض یک است.',guide:'منحنی‌ها برآورد چگالی هستند؛ پهنای بیشتر توزیع را نرم‌تر می‌کند. برای مقایسهٔ ارتفاع قله‌ها، مقیاس مشترک را نگه دارید.'};

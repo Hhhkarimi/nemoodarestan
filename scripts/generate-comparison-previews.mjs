@@ -1,0 +1,15 @@
+import {writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {curveBumpX,line} from 'd3-shape';
+import {initial} from '../shared/series/model.ts';
+import {packSwarm,rankTable} from '../shared/comparison/math.ts';
+import {root} from './run.mjs';
+const colors=['#468b6f','#c5ce88','#dca265','#aaa0c4','#80aab5'];
+const wrap=content=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 324">${content}</svg>`;
+const bump=initial('bump'),table=rankTable(bump.rows,bump.settings),x=i=>45+i/(table.periods.length-1)*510,y=rank=>46+(rank-1)/(table.maxRank-1)*230;
+const paths=table.series.map((series,i)=>`<path d="${line().defined(p=>p!==null).x(p=>x(table.periods.indexOf(p.period))).y(p=>y(p.rank)).curve(curveBumpX)(series.points)}" fill="none" stroke="${colors[i]}" stroke-width="4"/>${series.points.filter(Boolean).map(p=>`<circle cx="${x(table.periods.indexOf(p.period))}" cy="${y(p.rank)}" r="6" fill="${colors[i]}" stroke="#faf9f5" stroke-width="1.5"/>`).join('')}`).join('');
+await writeFile(resolve(root,'public/previews/bump.svg'),wrap(paths));
+const bee=initial('beeswarm'),groups=[...new Set(bee.rows.map(r=>r.group))],lo=Math.min(...bee.rows.map(r=>r.value)),hi=Math.max(...bee.rows.map(r=>r.value)),xx=value=>45+(value-lo)/(hi-lo)*510;
+const dots=groups.map((group,g)=>{const center=67+g*94,values=bee.rows.flatMap((r,index)=>r.group===group?[{index,x:xx(r.value)}]:[]);return `<path d="M40 ${center}H560" stroke="#dfe5df"/>`+packSwarm(values,4,1).points.map(p=>`<circle cx="${p.x}" cy="${center+p.y}" r="4" fill="${colors[g]}" fill-opacity=".9"/>`).join('');}).join('');
+await writeFile(resolve(root,'public/previews/beeswarm.svg'),wrap(dots));
+console.log('Bump and Beeswarm previews generated from sample data.');

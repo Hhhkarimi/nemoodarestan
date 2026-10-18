@@ -238,5 +238,64 @@
     ],
     "entry": "/studios/spiral-heatmap/index.html",
     "preview": "/previews/spiral-heatmap.svg"
+  },
+  {
+    "id": "bump",
+    "title": "تغییر رتبه",
+    "englishTitle": "Bump Chart",
+    "category": "time",
+    "categoryLabel": "روند زمانی",
+    "useCase": "جابه‌جایی رتبه‌ها را دنبال کنید",
+    "description": "رقابت گروه‌ها در طول زمان؛ تغییر رتبهٔ برندها، تیم‌ها یا کشورها را با مسیرهای رنگی و نشانگرهای رتبه ببینید.",
+    "tags": [
+      "رتبه",
+      "رتبه‌بندی",
+      "رقابت",
+      "زمان",
+      "بامپ",
+      "bump"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/bump",
+    "buildArgs": [
+      "--base=/studios/bump/"
+    ],
+    "entry": "/studios/bump/index.html",
+    "preview": "/previews/bump.svg"
+  },
+  {
+    "id": "beeswarm",
+    "title": "ازدحام نقطه‌ای",
+    "englishTitle": "Beeswarm Plot",
+    "category": "distribution",
+    "categoryLabel": "توزیع داده",
+    "useCase": "هر مشاهده را جداگانه ببینید",
+    "description": "هر مشاهده یک نقطه؛ تراکم، تفاوت گروه‌ها و مقدارهای دورافتاده را در چیدمانی بدون هم‌پوشانی کشف کنید.",
+    "tags": [
+      "ازدحام",
+      "نقطه",
+      "نقطه‌ای",
+      "زنبوری",
+      "توزیع",
+      "beeswarm",
+      "swarm"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/beeswarm",
+    "buildArgs": [
+      "--base=/studios/beeswarm/"
+    ],
+    "entry": "/studios/beeswarm/index.html",
+    "preview": "/previews/beeswarm.svg"
   }
 ]

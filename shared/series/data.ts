@@ -1,10 +1,12 @@
 import Papa from 'papaparse';
 import { numberValue, validateRows } from './model.ts';
-import type { Kind, Row } from './model.ts';
+import type { Kind, Row, Settings } from './model.ts';
 import { radialMatrix, treeRows } from '../radial/data.ts';
+import { comparisonMatrix } from '../comparison/data.ts';
 const normalize=(value:unknown):string=>String(value??'').trim().replace(/^\uFEFF/,'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\s\u200c_-]/g,'').toLowerCase();
 const aliases={group:['گروه','دسته','group','category','series','تیم'],x:['دوره','زمان','تاریخ','period','time','date','x'],value:['مقدار','مشاهده','value','amount','observation'],weight:['وزن','فراوانی','تعداد','weight','count','frequency']};
 export function parseMatrix(matrix: unknown[][], kind: Kind): Row[] {
+  if(kind==='bump'||kind==='beeswarm')return comparisonMatrix(matrix,kind);
   if(kind==='sunburst'||kind==='spiral-heatmap')return radialMatrix(matrix,kind);
   const lines=matrix.filter(row=>row.some(cell=>String(cell??'').trim()!==''));
   if(!lines.length)throw Error('فایل داده خالی است.');
@@ -39,11 +41,14 @@ export function parseText(text: string, kind: Kind): Row[] {
   if(parsed.errors.some(error=>error.code!=='UndetectableDelimiter'))throw Error('ساختار CSV معتبر نیست؛ نقل‌قول‌ها و جداکننده‌ها را بررسی کنید.');
   return parseMatrix(parsed.data,kind);
 }
-export function dataCSV(rows: Row[], kind: Kind): string {
+export function dataCSV(rows: Row[], kind: Kind,settings?:Pick<Settings,'rankInput'>): string {
+  if(kind==='bump'||kind==='beeswarm')return Papa.unparse(dataMatrix(rows,kind,settings));
   if(kind==='sunburst'||kind==='spiral-heatmap')return Papa.unparse(dataMatrix(rows,kind));
   return kind==='streamgraph'?Papa.unparse([['دوره','گروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])]):Papa.unparse([['گروه','مقدار','وزن'],...rows.map(r=>[r.group,r.x,r.value])]);
 }
-export function dataMatrix(rows:Row[],kind:Kind):(string|number)[][]{
+export function dataMatrix(rows:Row[],kind:Kind,settings?:Pick<Settings,'rankInput'>):(string|number)[][]{
+  if(kind==='bump')return [['دوره','گروه',settings?.rankInput==='rank'?'رتبه':'مقدار'],...rows.map(r=>[r.x,r.group,r.value])];
+  if(kind==='beeswarm')return [['نام','گروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])];
   if(kind==='sunburst'||kind==='spiral-heatmap')return [[kind==='sunburst'?'مسیر':'تاریخ','مقدار'],...rows.map(r=>[r.x,r.value])];
   return kind==='streamgraph'?[['دوره','گروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])]:[['گروه','مقدار','وزن'],...rows.map(r=>[r.group,r.x,r.value])];
 }
