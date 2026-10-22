@@ -541,5 +541,66 @@
     ],
     "entry": "/studios/waterfall/index.html",
     "preview": "/previews/waterfall.svg"
+  },
+  {
+    "id": "calendar-heatmap",
+    "title": "تقویم حرارتی",
+    "englishTitle": "Calendar Heatmap",
+    "category": "time",
+    "categoryLabel": "روند زمانی",
+    "useCase": "الگوی روزها را در تقویم ببینید",
+    "description": "مقدار هر روز در خانه‌های رنگی؛ فروش، فعالیت یا مصرف را با تقویم شمسی یا میلادی و نمای سالانه و ماهانه مقایسه کنید.",
+    "tags": [
+      "تقویم",
+      "حرارتی",
+      "شمسی",
+      "میلادی",
+      "روزانه",
+      "ماه",
+      "calendar",
+      "heatmap"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/calendar-heatmap",
+    "buildArgs": [
+      "--base=/studios/calendar-heatmap/"
+    ],
+    "entry": "/studios/calendar-heatmap/index.html",
+    "preview": "/previews/calendar-heatmap.svg"
+  },
+  {
+    "id": "ternary",
+    "title": "مثلثی",
+    "englishTitle": "Ternary Plot",
+    "category": "part",
+    "categoryLabel": "سهم و ترکیب",
+    "useCase": "ترکیب سه مؤلفه را مقایسه کنید",
+    "description": "هر نقطه یک ترکیب سه‌گانه؛ سهم محصولات، هزینه‌ها یا گزینه‌ها را با رأس‌های قابل تغییر، رنگ گروه و اندازهٔ نقاط نشان دهید.",
+    "tags": [
+      "مثلث",
+      "مثلثی",
+      "سه‌گانه",
+      "ترکیب",
+      "سهم",
+      "ternary",
+      "triangle"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/ternary",
+    "buildArgs": [
+      "--base=/studios/ternary/"
+    ],
+    "entry": "/studios/ternary/index.html",
+    "preview": "/previews/ternary.svg"
   }
 ]

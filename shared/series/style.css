@@ -33,3 +33,5 @@
 .axis-control{min-width:0;border:1px solid var(--line);border-radius:8px;padding:12px;margin:14px 0}.axis-control legend{padding:0 5px;font-weight:600;font-size:12px;overflow-wrap:anywhere}.axis-actions{display:flex;gap:8px;align-items:center;margin-bottom:10px}.axis-actions button{min-width:36px;min-height:36px}.axis-actions .toggle{flex:1;margin:0}.axis-control .field{min-width:0}.axis-control .field input{width:100%;min-width:0}
 
 .flows select{font:inherit;font-size:11px;min-height:37px;width:100%;min-width:0;padding:4px}.canvas svg [data-node]{touch-action:none}.canvas svg [data-node]:active{cursor:grabbing!important}
+
+.sidebar,#panel,#data-input{min-width:0}.data-table-scroll{width:100%;max-width:100%;min-width:0;overflow-x:auto;contain:inline-size paint}.flows.ternary-data{min-width:530px}.ternary-data th{min-width:72px}.ternary-data th:first-child{min-width:108px}.ternary-data th:last-child{min-width:25px}

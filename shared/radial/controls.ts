@@ -1,3 +1,5 @@
+import {calendarInfo} from '../calendar/controls.ts';
+import {ternaryInfo} from '../ternary/controls.ts';
 import {networkInfo} from '../network/controls.ts';
 import {waterfallInfo} from '../waterfall/controls.ts';
 import {multiInfo} from '../multivariate/controls.ts';
@@ -12,6 +14,8 @@ interface Controls {
   toggle:(label:string,key:keyof Settings)=>string;
 }
 export function editorInfo(kind:Kind):{noun:string;samples:[string,string];help:string;columns:string[];keys:(keyof Row)[];guide:string}{
+  if(kind==='calendar-heatmap')return calendarInfo();
+  if(kind==='ternary')return ternaryInfo();
   if(kind==='network')return networkInfo();
   if(kind==='waterfall')return waterfallInfo();
   if(kind==='waffle'||kind==='parallel-coordinates')return multiInfo(kind);

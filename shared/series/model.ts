@@ -1,3 +1,5 @@
+import {calendarSamples,validateCalendarRows} from '../calendar/math.ts';
+import {ternarySamples,validateTernaryRows,validateTernarySettings} from '../ternary/math.ts';
 import {graphTable,networkSamples,validateNetworkRows,validateNodes} from '../network/math.ts';
 import {waterfallSamples,validateWaterfallRows,waterfallColors,waterfallColorLabel} from '../waterfall/math.ts';
 import {multiSamples,validateMultiRows,parallelTable,axisState} from '../multivariate/math.ts';
@@ -6,8 +8,8 @@ import { comparisonSamples, validateComparisonRows, validateComparisonData } fro
 import { businessSamples, validateBusinessRows, validateBusinessData } from '../business/math.ts';
 import {motionSamples,validateMotionRows,raceTable} from '../motion/math.ts';
 import {parseLogos} from '../motion/data.ts';
-export type Kind = 'network' | 'waterfall' | 'waffle' | 'parallel-coordinates' | 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell' | 'bar-chart-race' | 'circle-packing';
-export interface Row { x: string; group: string; value: number; second?: number; axis?:string }
+export type Kind = 'calendar-heatmap' | 'ternary' | 'network' | 'waterfall' | 'waffle' | 'parallel-coordinates' | 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell' | 'bar-chart-race' | 'circle-packing';
+export interface Row { x: string; group: string; value: number; second?: number; axis?:string;third?:number;size?:number }
 export interface NetworkNode {id:string;group:string;size:number;x?:number;y?:number}
 export interface CustomFont { id: string; name: string; dataUrl: string; format: 'woff2' | 'woff' | 'truetype' | 'opentype' }
 export interface Settings {
@@ -35,6 +37,8 @@ export interface Settings {
   networkDirected:boolean;networkSize:string;networkRadius:number;networkDistance:number;networkRepulsion:number;
   networkLinkColor:string;networkLabels:string;networkNeighbors:boolean;networkFocus:string;networkSeed:number;
   waterfallBase:number;waterfallOrientation:string;waterfallGap:number;waterfallConnectors:boolean;waterfallValue:string;waterfallLabels:string;
+  calendarView:string;calendarYear:string;calendarMonth:number;calendarWeekStart:string;calendarColumns:number;calendarGap:number;calendarCellText:string;calendarWeekend:boolean;
+  ternaryA:string;ternaryB:string;ternaryC:string;ternaryAColor:string;ternaryBColor:string;ternaryCColor:string;ternaryNormalize:boolean;ternaryOrder:string;ternaryGridStep:number;ternarySizeMode:string;ternaryLabels:string;
   packSort:string; packPadding:number; packLabels:string; showContainers:boolean;
 }
 export interface Project { version: 1; kind: Kind; rows: Row[]; settings: Settings; fonts: CustomFont[]; colors: Record<string, string>; logos?:Record<string,string>;nodes?:NetworkNode[] }
@@ -47,6 +51,8 @@ export const palettes: Record<string, string[]> = {
   mono: ['#1f524d','#326f65','#4b8b7d','#70a995','#97c2aa','#bfd8c0']
 };
 export const metadata: Record<Kind, { title: string; english: string; category: string }> = {
+  'calendar-heatmap':{title:'تقویم حرارتی استودیو',english:'CALENDAR HEATMAP STUDIO',category:'مقدار هر روز در تقویم'},
+  ternary:{title:'مثلثی استودیو',english:'TERNARY PLOT STUDIO',category:'نسبت سه مؤلفه در یک مثلث'},
   network:{title:'شبکه‌ای استودیو',english:'NETWORK GRAPH STUDIO',category:'اعضا و ارتباط‌های میان آن‌ها'},
   waterfall:{title:'آبشاری استودیو',english:'WATERFALL CHART STUDIO',category:'از مقدار اولیه تا نتیجهٔ نهایی'},
   waffle:{title:'وافل استودیو',english:'WAFFLE CHART STUDIO',category:'سهم‌ها در خانه‌های برابر'},
@@ -70,21 +76,21 @@ export function numberValue(input: unknown): number {
 export const hex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 export function defaults(kind: Kind): Settings {
   return {
-    title: ({network:'شبکهٔ همکاری تیم‌ها',waterfall:'از درآمد تا سود خالص',waffle:'ترکیب هزینهٔ خانوار','parallel-coordinates':'مقایسهٔ دوازده محصول',streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد','bar-chart-race':'رقابت برندها در گذر ماه‌ها','circle-packing':'ترکیب فروش در دایره‌ها'})[kind],
-    subtitle: ({network:'هر گره یک عضو؛ ضخامت خط وزن همکاری · داده‌های نمونه',waterfall:'تغییرها و جمع‌های میانی · داده‌های نمونه',waffle:'سهم دسته‌ها از کل · داده‌های نمونه','parallel-coordinates':'پنج شاخص؛ هر مسیر یک محصول · داده‌های نمونه',streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه','bar-chart-race':'فروش هشت برند در هشت ماه · داده‌های نمونه','circle-packing':'از بازار تا دسته و محصول · داده‌های نمونه'})[kind],
-    unit: ({network:'همکاری',waterfall:'میلیون تومان',waffle:'واحد','parallel-coordinates':'',streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان','bar-chart-race':'میلیون تومان','circle-packing':'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
+    title: ({'calendar-heatmap':'نبض فعالیت در یک سال',ternary:'ترکیب هزینهٔ محصولات',network:'شبکهٔ همکاری تیم‌ها',waterfall:'از درآمد تا سود خالص',waffle:'ترکیب هزینهٔ خانوار','parallel-coordinates':'مقایسهٔ دوازده محصول',streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد','bar-chart-race':'رقابت برندها در گذر ماه‌ها','circle-packing':'ترکیب فروش در دایره‌ها'})[kind],
+    subtitle: ({'calendar-heatmap':'هر خانه یک روز؛ رنگ نشان‌دهندهٔ مقدار · داده‌های نمونه',ternary:'هر نقطه یک محصول؛ سه مؤلفهٔ هزینه · داده‌های نمونه',network:'هر گره یک عضو؛ ضخامت خط وزن همکاری · داده‌های نمونه',waterfall:'تغییرها و جمع‌های میانی · داده‌های نمونه',waffle:'سهم دسته‌ها از کل · داده‌های نمونه','parallel-coordinates':'پنج شاخص؛ هر مسیر یک محصول · داده‌های نمونه',streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه','bar-chart-race':'فروش هشت برند در هشت ماه · داده‌های نمونه','circle-packing':'از بازار تا دسته و محصول · داده‌های نمونه'})[kind],
+    unit: ({'calendar-heatmap':'فعالیت',ternary:'',network:'همکاری',waterfall:'میلیون تومان',waffle:'واحد','parallel-coordinates':'',streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان','bar-chart-race':'میلیون تومان','circle-packing':'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
     titleSize: 28, subtitleSize: 15, fontSize: 14, legendSize: 13,
     width: 1200, height: 760, palette: 'ocean', background: '#ffffff', textColor: '#263d45',
-    opacity: .87, strokeWidth: 1, showLegend: true, showLabels: true, showGrid: false,
-    showAxes: true, showValues: ['waterfall','waffle','bump','marimekko','dumbbell','bar-chart-race','circle-packing'].includes(kind), transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
+    opacity: .87, strokeWidth: 1, showLegend: true, showLabels: true, showGrid: kind==='ternary',
+    showAxes: true, showValues: ['waterfall','waffle','bump','marimekko','dumbbell','bar-chart-race','circle-packing'].includes(kind), transparent: true, dark: false, direction: kind==='calendar-heatmap'?'rtl':'ltr', digits: 'fa', decimals: 1,
     curve: kind === 'streamgraph' ? 'basis' : 'monotone', offset: 'wiggle', order: 'inside-out', normalize: false,
     bandwidth: 0, overlap: 1.65, densityScale: 'shared', ridgeSort: 'input', showMedian: false,
     innerRadius: .2, rotation: 0, ringGap: 1.5, sunSort: 'input', labelMode: 'horizontal', valueMode: 'percent', focusPath: '',
-    slotsPerTurn: 30, timeUnit: 'day', aggregation: 'mean', calendar: 'persian', clockwise: true,
+    slotsPerTurn: 30, timeUnit: 'day', aggregation: kind==='calendar-heatmap'?'sum':'mean', calendar: 'persian', clockwise: true,
     heatPalette: 'teal', reverseColors: false, autoDomain: true, domainMin: 0, domainMax: 100,
     lowColor: '#e9f2eb', highColor: '#12675e', missingColor: '#dce1e4',
     rankInput:'value',rankDirection:'higher',tieMethod:'competition',bumpCurve:'smooth',endLabels:'end',
-    lineWidth:3.5,pointRadius:kind==='bump'?7:5,valueSize:kind==='bar-chart-race'?14:11,showPoints:true,connectMissing:false,
+    lineWidth:3.5,pointRadius:kind==='bump'||kind==='ternary'?7:5,valueSize:kind==='bar-chart-race'?14:11,showPoints:true,connectMissing:false,
     swarmLayout:'grouped',swarmSort:'input',axisScale:'linear',pointPadding:1,autoPointSize:true,
     pointLabels:'extremes',showMean:false,
     mekkoOrientation:'vertical',mekkoSort:'input',segmentSort:'input',mekkoGap:4,showTotals:true,
@@ -96,10 +102,14 @@ export function defaults(kind: Kind): Settings {
     networkDirected:false,networkSize:'degree',networkRadius:18,networkDistance:130,networkRepulsion:2500,
     networkLinkColor:'neutral',networkLabels:'auto',networkNeighbors:true,networkFocus:'',networkSeed:19,
     waterfallBase:0,waterfallOrientation:'vertical',waterfallGap:.25,waterfallConnectors:true,waterfallValue:'change',waterfallLabels:'auto',
+    calendarView:'year',calendarYear:'',calendarMonth:1,calendarWeekStart:'6',calendarColumns:4,calendarGap:2,calendarCellText:'day',calendarWeekend:false,
+    ternaryA:'مواد اولیه',ternaryB:'نیروی کار',ternaryC:'سایر هزینه‌ها',ternaryAColor:'#168879',ternaryBColor:'#4d8cb5',ternaryCColor:'#a7752b',ternaryNormalize:true,ternaryOrder:'abc',ternaryGridStep:20,ternarySizeMode:'uniform',ternaryLabels:'auto',
     packSort:'value',packPadding:5,packLabels:'leaves',showContainers:true
   };
 }
 export function sampleRows(kind: Kind, alternative = false): Row[] {
+  if(kind==='calendar-heatmap')return calendarSamples(alternative);
+  if(kind==='ternary')return ternarySamples(alternative);
   if(kind==='network')return networkSamples(alternative).rows;
   if(kind==='waterfall')return waterfallSamples(alternative);
   if(kind==='waffle'||kind==='parallel-coordinates')return multiSamples(kind,alternative);
@@ -122,6 +132,8 @@ export function sampleRows(kind: Kind, alternative = false): Row[] {
 }
 export function initial(kind: Kind): Project { return { version: 1, kind, rows: sampleRows(kind), settings: defaults(kind), fonts: [], colors: {},...(kind==='bar-chart-race'?{logos:{}}:{}),...(kind==='network'?{nodes:networkSamples().nodes}:{}) }; }
 export function validateRows(input: unknown, kind: Kind): Row[] {
+  if(kind==='calendar-heatmap')return validateCalendarRows(input,numberValue);
+  if(kind==='ternary')return validateTernaryRows(input,numberValue);
   if(kind==='network')return validateNetworkRows(input,numberValue);
   if(kind==='waterfall')return validateWaterfallRows(input,numberValue);
   if(kind==='waffle'||kind==='parallel-coordinates')return validateMultiRows(input,kind,numberValue);
@@ -155,7 +167,7 @@ const numericRanges: Partial<Record<keyof Settings, [number, number]>> = {
   width: [600,2400], height: [400,1800], titleSize: [14,60], subtitleSize: [10,32], fontSize: [9,28], legendSize: [9,24],
   opacity: [.1,1], strokeWidth: [0,4], decimals: [0,3], bandwidth: [0,1e12], overlap: [.5,4],
   innerRadius:[.08,.45],rotation:[-180,180],ringGap:[0,8],slotsPerTurn:[3,366],domainMin:[-1e12,1e12],domainMax:[-1e12,1e12],
-  networkRadius:[5,35],networkDistance:[40,250],networkRepulsion:[100,6000],networkSeed:[1,99999],waterfallBase:[-1e12,1e12],waterfallGap:[.05,.6],waffleCells:[10,1000],waffleColumns:[2,50],waffleGap:[0,12],lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14],racePosition:[0,119],raceDuration:[.5,10],raceTopN:[1,20],raceTimeSize:[18,60],packPadding:[0,20]
+  calendarMonth:[1,12],calendarColumns:[2,4],calendarGap:[0,8],ternaryGridStep:[10,25],networkRadius:[5,35],networkDistance:[40,250],networkRepulsion:[100,6000],networkSeed:[1,99999],waterfallBase:[-1e12,1e12],waterfallGap:[.05,.6],waffleCells:[10,1000],waffleColumns:[2,50],waffleGap:[0,12],lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14],racePosition:[0,119],raceDuration:[.5,10],raceTopN:[1,20],raceTimeSize:[18,60],packPadding:[0,20]
 };
 export function parseProject(input: unknown, kind: Kind): Project {
   if (!input || typeof input !== 'object') throw Error('فایل پروژه معتبر نیست.');
@@ -184,6 +196,13 @@ export function parseProject(input: unknown, kind: Kind): Project {
   for(const [key,values] of Object.entries(comparisonChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const businessChoices:Partial<Record<keyof Settings,string[]>>={mekkoOrientation:['vertical','horizontal'],mekkoSort:['input','total','name'],segmentSort:['input','total','name'],mekkoLabel:['percent','value','both'],mekkoPercent:['category','total'],pairSort:['input','name','first','second','change','gap','percent'],changeLabel:['difference','percent','both','none'],connectorStyle:['line','arrow']};
   for(const [key,values] of Object.entries(businessChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
+  settings.calendarMonth=Math.round(settings.calendarMonth);settings.calendarColumns=Math.round(settings.calendarColumns);
+  settings.calendarYear=/^\d{4}$/.test(settings.calendarYear)?settings.calendarYear:'';
+  for(const key of ['ternaryA','ternaryB','ternaryC'] as const)settings[key]=settings[key].trim().slice(0,40);
+  for(const key of ['ternaryAColor','ternaryBColor','ternaryCColor'] as const)if(!hex(settings[key]))settings[key]=defaults(kind)[key];
+  if(![10,20,25].includes(settings.ternaryGridStep))settings.ternaryGridStep=20;
+  const compositionChoices:Partial<Record<keyof Settings,string[]>>={calendarView:['year','month'],calendarWeekStart:['6','0','1'],calendarCellText:['day','value','none'],ternaryOrder:['abc','acb','bac','bca','cab','cba'],ternarySizeMode:['uniform','value'],ternaryLabels:['auto','all','none']};
+  for(const [key,values] of Object.entries(compositionChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const graphChoices:Partial<Record<keyof Settings,string[]>>={networkSize:['degree','strength','value','uniform'],networkLinkColor:['neutral','source'],networkLabels:['auto','all','selected','none'],waterfallOrientation:['vertical','horizontal'],waterfallValue:['change','balance'],waterfallLabels:['auto','horizontal','slanted']};
   for(const [key,values] of Object.entries(graphChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   settings.networkFocus=settings.networkFocus.slice(0,80);settings.networkSeed=Math.round(settings.networkSeed);
@@ -203,6 +222,8 @@ export function parseProject(input: unknown, kind: Kind): Project {
   if (p.colors && typeof p.colors === 'object') for (const [name, color] of Object.entries(p.colors)) if (hex(color) && !['__proto__','constructor','prototype'].includes(name)) colors[name] = color;
   const rows=validateRows(p.rows,kind);if(kind==='bump'||kind==='beeswarm')validateComparisonData(rows,kind,settings);
   if(kind==='marimekko'||kind==='dumbbell')validateBusinessData(rows,kind,settings);
+  if(kind==='ternary')validateTernarySettings(rows,settings);
+  if(kind==='calendar-heatmap'&&!settings.autoDomain&&settings.domainMin>=settings.domainMax)throw Error('کمینهٔ رنگ باید از بیشینه کوچک‌تر باشد.');
   if(kind==='parallel-coordinates'){
     const state=axisState(settings,[...new Set(rows.map(r=>r.axis!))]);
     settings.parallelOrder=JSON.stringify(state.order);settings.parallelInverted=JSON.stringify(state.inverted);settings.parallelFilters=JSON.stringify(state.filters);parallelTable(rows,settings);

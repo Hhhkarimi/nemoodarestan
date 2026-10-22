@@ -1,3 +1,5 @@
+import {calendarMatrix} from '../calendar/data.ts';
+import {ternaryMatrix,ternaryText} from '../ternary/data.ts';
 import {networkMatrix,networkText,networkDataMatrix} from '../network/data.ts';
 import {waterfallMatrix} from '../waterfall/data.ts';
 import {multiMatrix} from '../multivariate/data.ts';
@@ -11,6 +13,8 @@ import {motionMatrix} from '../motion/data.ts';
 const normalize=(value:unknown):string=>String(value??'').trim().replace(/^\uFEFF/,'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\s\u200c_-]/g,'').toLowerCase();
 const aliases={group:['گروه','دسته','group','category','series','تیم'],x:['دوره','زمان','تاریخ','period','time','date','x'],value:['مقدار','مشاهده','value','amount','observation'],weight:['وزن','فراوانی','تعداد','weight','count','frequency']};
 export function parseMatrix(matrix: unknown[][], kind: Kind): Row[] {
+  if(kind==='calendar-heatmap')return calendarMatrix(matrix);
+  if(kind==='ternary')return ternaryMatrix(matrix).rows;
   if(kind==='network')return networkMatrix(matrix).rows;
   if(kind==='waterfall')return waterfallMatrix(matrix);
   if(kind==='waffle'||kind==='parallel-coordinates')return multiMatrix(matrix,kind);
@@ -37,6 +41,7 @@ export function parseMatrix(matrix: unknown[][], kind: Kind): Row[] {
   return validateRows(rows,kind);
 }
 export function parseText(text: string, kind: Kind): Row[] {
+  if(kind==='ternary')return ternaryText(text).rows;
   if(kind==='network')return networkText(text).rows;
   if(!text.trim())throw Error('متنی برای ورود داده وجود ندارد.');
   if(/^[\s\uFEFF]*[\[{]/.test(text)){
@@ -44,7 +49,7 @@ export function parseText(text: string, kind: Kind): Row[] {
     if((kind==='sunburst'||kind==='circle-packing')&&parsed&&typeof parsed==='object'&&!Array.isArray(parsed)&&'name' in parsed)return treeRows(parsed);
     const rows=Array.isArray(parsed)?parsed:(parsed&&typeof parsed==='object'&&'rows' in parsed?(parsed as {rows:unknown}).rows:undefined);
     if(!Array.isArray(rows))throw Error('JSON باید آرایه‌ای از ردیف‌ها باشد.');
-    if(kind==='waterfall')return validateRows(rows,kind);
+    if(kind==='calendar-heatmap'||kind==='waterfall')return validateRows(rows,kind);
     if(rows.every(row=>row&&typeof row==='object'&&'x' in row&&'group' in row&&'value' in row))return validateRows(rows,kind);
     const keys=[...new Set(rows.flatMap(row=>row&&typeof row==='object'?Object.keys(row):[]))];
     return parseMatrix([keys,...rows.map(row=>keys.map(key=>(row as Record<string,unknown>)?.[key]))],kind);
@@ -54,6 +59,7 @@ export function parseText(text: string, kind: Kind): Row[] {
   return parseMatrix(parsed.data,kind);
 }
 export function dataCSV(rows: Row[], kind: Kind,settings?:Partial<Settings>,nodes?:NetworkNode[]): string {
+  if(kind==='calendar-heatmap'||kind==='ternary')return Papa.unparse(dataMatrix(rows,kind,settings));
   if(kind==='network'||kind==='waterfall')return Papa.unparse(dataMatrix(rows,kind,settings,nodes));
   if(kind==='waffle'||kind==='parallel-coordinates')return Papa.unparse(dataMatrix(rows,kind,settings));
   if(kind==='bar-chart-race'||kind==='circle-packing')return Papa.unparse(dataMatrix(rows,kind,settings));
@@ -63,6 +69,8 @@ export function dataCSV(rows: Row[], kind: Kind,settings?:Partial<Settings>,node
   return kind==='streamgraph'?Papa.unparse([['دوره','گروه','مقدار'],...rows.map(r=>[r.x,r.group,r.value])]):Papa.unparse([['گروه','مقدار','وزن'],...rows.map(r=>[r.group,r.x,r.value])]);
 }
 export function dataMatrix(rows:Row[],kind:Kind,settings?:Partial<Settings>,nodes?:NetworkNode[]):(string|number)[][]{
+  if(kind==='calendar-heatmap')return [['تاریخ','مقدار'],...rows.map(r=>[r.x,r.value])];
+  if(kind==='ternary')return [['نام','گروه',`A: ${settings?.ternaryA||'A'}`,`B: ${settings?.ternaryB||'B'}`,`C: ${settings?.ternaryC||'C'}`,'اندازه'],...rows.map(r=>[r.x,r.group,r.value,r.second!,r.third!,r.size??1])];
   if(kind==='network')return networkDataMatrix(rows,nodes);
   if(kind==='waterfall')return [['نام','نوع','مقدار'],...rows.map(r=>[r.x,r.group,['subtotal','total'].includes(r.group)?'':r.value])];
   if(kind==='waffle')return [['گروه','مقدار'],...rows.map(r=>[r.group,r.value])];
