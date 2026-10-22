@@ -1,3 +1,4 @@
+import {multiInfo} from '../multivariate/controls.ts';
 import type { Kind, Project, Row, Settings } from '../series/model.ts';
 import { flatten, hierarchy } from './math.ts';
 import { comparisonInfo } from '../comparison/controls.ts';
@@ -9,6 +10,7 @@ interface Controls {
   toggle:(label:string,key:keyof Settings)=>string;
 }
 export function editorInfo(kind:Kind):{noun:string;samples:[string,string];help:string;columns:string[];keys:(keyof Row)[];guide:string}{
+  if(kind==='waffle'||kind==='parallel-coordinates')return multiInfo(kind);
   if(kind==='bar-chart-race'||kind==='circle-packing')return motionInfo(kind);
   if(kind==='marimekko'||kind==='dumbbell')return businessInfo(kind);
   if(kind==='bump'||kind==='beeswarm')return comparisonInfo(kind);

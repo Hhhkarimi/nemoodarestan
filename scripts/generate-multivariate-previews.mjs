@@ -1,0 +1,12 @@
+import {writeFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {initial} from '../shared/series/model.ts';
+import {waffleParts,parallelTable,axisPosition} from '../shared/multivariate/math.ts';
+import {root} from './run.mjs';
+const colors=['#468b6f','#c5ce88','#dca265','#aaa0c4','#80aab5'];
+const wrap=content=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 324">${content}</svg>`;
+const waffle=initial('waffle'),parts=waffleParts(waffle.rows,100);
+await writeFile(resolve(root,'public/previews/waffle.svg'),wrap(parts.map((p,i)=>Array.from({length:p.count},(_,j)=>{const n=p.start+j;return `<rect x="${147+n%10*29}" y="${17+Math.floor(n/10)*29}" width="24" height="24" rx="2" fill="${colors[i]}"/>`;}).join('')).join('')));
+const parallel=initial('parallel-coordinates'),table=parallelTable(parallel.rows,parallel.settings),groups=[...new Set(parallel.rows.map(r=>r.group))];
+await writeFile(resolve(root,'public/previews/parallel-coordinates.svg'),wrap(table.axes.map((axis,i)=>`<path d="M${55+i*122.5} 28v268" stroke="#bdc8b9" stroke-width="2"/>`).join('')+table.items.map(item=>`<path d="${table.axes.map((axis,i)=>`${i?'L':'M'}${55+i*122.5},${296-axisPosition(item.values.get(axis),table.domains.get(axis))*268}`).join('')}" fill="none" stroke="${colors[groups.indexOf(item.group)]}" stroke-width="2.2" opacity=".75"/>`).join('')));
+console.log('Waffle and Parallel Coordinates previews generated from sample data.');

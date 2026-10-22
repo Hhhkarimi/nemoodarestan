@@ -421,5 +421,64 @@
     ],
     "entry": "/studios/circle-packing/index.html",
     "preview": "/previews/circle-packing.svg"
+  },
+  {
+    "id": "waffle",
+    "title": "وافل",
+    "englishTitle": "Waffle Chart",
+    "category": "part",
+    "categoryLabel": "سهم و ترکیب",
+    "useCase": "سهم‌ها را خانه به خانه ببینید",
+    "description": "خانه‌های هم‌اندازه برای نمایش سهم، درصد و پیشرفت؛ ترکیب هزینه، نظرسنجی یا میزان تحقق هدف را با شبکه‌ای رنگی نشان دهید.",
+    "tags": [
+      "وافل",
+      "شبکه",
+      "درصد",
+      "سهم",
+      "پیشرفت",
+      "waffle"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/waffle",
+    "buildArgs": [
+      "--base=/studios/waffle/"
+    ],
+    "entry": "/studios/waffle/index.html",
+    "preview": "/previews/waffle.svg"
+  },
+  {
+    "id": "parallel-coordinates",
+    "title": "مختصات موازی",
+    "englishTitle": "Parallel Coordinates",
+    "category": "comparison",
+    "categoryLabel": "مقایسه",
+    "useCase": "چند شاخص را در یک مسیر مقایسه کنید",
+    "description": "هر مسیر یک مورد؛ محصولات، شعبه‌ها یا استان‌ها را روی چند محور با مقیاس مستقل، تغییر ترتیب و فیلتر بازه‌ها مقایسه کنید.",
+    "tags": [
+      "مختصات",
+      "موازی",
+      "شاخص",
+      "چندمتغیره",
+      "مقایسه",
+      "parallel",
+      "coordinates"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/parallel-coordinates",
+    "buildArgs": [
+      "--base=/studios/parallel-coordinates/"
+    ],
+    "entry": "/studios/parallel-coordinates/index.html",
+    "preview": "/previews/parallel-coordinates.svg"
   }
 ]

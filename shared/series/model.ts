@@ -1,10 +1,11 @@
+import {multiSamples,validateMultiRows,parallelTable,axisState} from '../multivariate/math.ts';
 import { radialSamples, validateRadialRows } from '../radial/math.ts';
 import { comparisonSamples, validateComparisonRows, validateComparisonData } from '../comparison/math.ts';
 import { businessSamples, validateBusinessRows, validateBusinessData } from '../business/math.ts';
 import {motionSamples,validateMotionRows,raceTable} from '../motion/math.ts';
 import {parseLogos} from '../motion/data.ts';
-export type Kind = 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell' | 'bar-chart-race' | 'circle-packing';
-export interface Row { x: string; group: string; value: number; second?: number }
+export type Kind = 'waffle' | 'parallel-coordinates' | 'streamgraph' | 'ridgeline' | 'sunburst' | 'spiral-heatmap' | 'bump' | 'beeswarm' | 'marimekko' | 'dumbbell' | 'bar-chart-race' | 'circle-packing';
+export interface Row { x: string; group: string; value: number; second?: number; axis?:string }
 export interface CustomFont { id: string; name: string; dataUrl: string; format: 'woff2' | 'woff' | 'truetype' | 'opentype' }
 export interface Settings {
   title: string; subtitle: string; unit: string; fontFamily: string;
@@ -26,6 +27,8 @@ export interface Settings {
   mekkoLabel:string; mekkoPercent:string; firstLabel:string; secondLabel:string; pairSort:string;
   changeLabel:string; includeZero:boolean; connectorStyle:string; connectorColor:string;
   racePosition:number; raceDuration:number; raceTopN:number; raceScale:string; raceMissing:string; raceLoop:boolean; raceTimeSize:number; showLogos:boolean;
+  waffleCells:number; waffleColumns:number; waffleGap:number; waffleShape:string; waffleSort:string; waffleFill:string;
+  parallelScale:string; parallelMissing:string; parallelOrder:string; parallelInverted:string; parallelFilters:string;
   packSort:string; packPadding:number; packLabels:string; showContainers:boolean;
 }
 export interface Project { version: 1; kind: Kind; rows: Row[]; settings: Settings; fonts: CustomFont[]; colors: Record<string, string>; logos?:Record<string,string> }
@@ -38,6 +41,8 @@ export const palettes: Record<string, string[]> = {
   mono: ['#1f524d','#326f65','#4b8b7d','#70a995','#97c2aa','#bfd8c0']
 };
 export const metadata: Record<Kind, { title: string; english: string; category: string }> = {
+  waffle:{title:'وافل استودیو',english:'WAFFLE CHART STUDIO',category:'سهم‌ها در خانه‌های برابر'},
+  'parallel-coordinates':{title:'مختصات موازی استودیو',english:'PARALLEL COORDINATES STUDIO',category:'مقایسهٔ چند شاخص در یک مسیر'},
   streamgraph: { title: 'رودخانه‌ای استودیو', english: 'STREAMGRAPH STUDIO', category: 'روند لایه‌های سیال' },
   ridgeline: { title: 'کوهستانی استودیو', english: 'RIDGELINE STUDIO', category: 'مقایسهٔ توزیع گروه‌ها' },
   sunburst: { title: 'خورشیدی استودیو', english: 'SUNBURST STUDIO', category: 'سلسله‌مراتب در حلقه‌ها' },
@@ -57,13 +62,13 @@ export function numberValue(input: unknown): number {
 export const hex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v);
 export function defaults(kind: Kind): Settings {
   return {
-    title: ({streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد','bar-chart-race':'رقابت برندها در گذر ماه‌ها','circle-packing':'ترکیب فروش در دایره‌ها'})[kind],
-    subtitle: ({streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه','bar-chart-race':'فروش هشت برند در هشت ماه · داده‌های نمونه','circle-packing':'از بازار تا دسته و محصول · داده‌های نمونه'})[kind],
-    unit: ({streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان','bar-chart-race':'میلیون تومان','circle-packing':'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
+    title: ({waffle:'ترکیب هزینهٔ خانوار','parallel-coordinates':'مقایسهٔ دوازده محصول',streamgraph:'توجه مخاطبان در طول سال',ridgeline:'توزیع زمان پاسخ‌گویی',sunburst:'ترکیب فروش در بازارها','spiral-heatmap':'نبض فعالیت در طول زمان',bump:'رقابت برندها در شش ماه',beeswarm:'قیمت محصولات در سه دسته',marimekko:'سهم برندها در بازار استان‌ها',dumbbell:'فروش استان‌ها؛ قبل و بعد','bar-chart-race':'رقابت برندها در گذر ماه‌ها','circle-packing':'ترکیب فروش در دایره‌ها'})[kind],
+    subtitle: ({waffle:'سهم دسته‌ها از کل · داده‌های نمونه','parallel-coordinates':'پنج شاخص؛ هر مسیر یک محصول · داده‌های نمونه',streamgraph:'روند کانال‌های ارتباطی · داده‌های نمونه',ridgeline:'مقایسهٔ شش تیم · داده‌های نمونه',sunburst:'از بازار تا دسته و محصول · داده‌های نمونه','spiral-heatmap':'هر خانه یک روز؛ هر دور ۳۰ روز · داده‌های نمونه',bump:'رتبهٔ فروش؛ مقدار بزرگ‌تر بهتر است · داده‌های نمونه',beeswarm:'هر نقطه یک محصول · داده‌های نمونه',marimekko:'عرض ستون: اندازهٔ بازار؛ ارتفاع بخش: سهم برند · داده‌های نمونه',dumbbell:'مقایسهٔ دو دوره در هفت استان · داده‌های نمونه','bar-chart-race':'فروش هشت برند در هشت ماه · داده‌های نمونه','circle-packing':'از بازار تا دسته و محصول · داده‌های نمونه'})[kind],
+    unit: ({waffle:'واحد','parallel-coordinates':'',streamgraph:'هزار بازدید',ridgeline:'دقیقه',sunburst:'میلیون تومان','spiral-heatmap':'فعالیت',bump:'امتیاز فروش',beeswarm:'میلیون تومان',marimekko:'میلیون تومان',dumbbell:'میلیون تومان','bar-chart-race':'میلیون تومان','circle-packing':'میلیون تومان'})[kind], fontFamily: 'Vazirmatn',
     titleSize: 28, subtitleSize: 15, fontSize: 14, legendSize: 13,
     width: 1200, height: 760, palette: 'ocean', background: '#ffffff', textColor: '#263d45',
     opacity: .87, strokeWidth: 1, showLegend: true, showLabels: true, showGrid: false,
-    showAxes: true, showValues: ['bump','marimekko','dumbbell','bar-chart-race','circle-packing'].includes(kind), transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
+    showAxes: true, showValues: ['waffle','bump','marimekko','dumbbell','bar-chart-race','circle-packing'].includes(kind), transparent: true, dark: false, direction: 'ltr', digits: 'fa', decimals: 1,
     curve: kind === 'streamgraph' ? 'basis' : 'monotone', offset: 'wiggle', order: 'inside-out', normalize: false,
     bandwidth: 0, overlap: 1.65, densityScale: 'shared', ridgeSort: 'input', showMedian: false,
     innerRadius: .2, rotation: 0, ringGap: 1.5, sunSort: 'input', labelMode: 'horizontal', valueMode: 'percent', focusPath: '',
@@ -78,10 +83,13 @@ export function defaults(kind: Kind): Settings {
     mekkoLabel:'percent',mekkoPercent:'category',firstLabel:'قبل',secondLabel:'بعد',pairSort:'input',
     changeLabel:'difference',includeZero:false,connectorStyle:'line',connectorColor:'#a5b9b4',
     racePosition:0,raceDuration:1.5,raceTopN:8,raceScale:'global',raceMissing:'hide',raceLoop:false,raceTimeSize:36,showLogos:true,
+    waffleCells:100,waffleColumns:10,waffleGap:4,waffleShape:'square',waffleSort:'input',waffleFill:'row',
+    parallelScale:'independent',parallelMissing:'gaps',parallelOrder:'[]',parallelInverted:'[]',parallelFilters:'{}',
     packSort:'value',packPadding:5,packLabels:'leaves',showContainers:true
   };
 }
 export function sampleRows(kind: Kind, alternative = false): Row[] {
+  if(kind==='waffle'||kind==='parallel-coordinates')return multiSamples(kind,alternative);
   if(kind==='bar-chart-race'||kind==='circle-packing')return motionSamples(kind,alternative);
   if(kind==='marimekko'||kind==='dumbbell')return businessSamples(kind,alternative);
   if(kind==='bump'||kind==='beeswarm')return comparisonSamples(kind,alternative);
@@ -101,6 +109,7 @@ export function sampleRows(kind: Kind, alternative = false): Row[] {
 }
 export function initial(kind: Kind): Project { return { version: 1, kind, rows: sampleRows(kind), settings: defaults(kind), fonts: [], colors: {},...(kind==='bar-chart-race'?{logos:{}}:{}) }; }
 export function validateRows(input: unknown, kind: Kind): Row[] {
+  if(kind==='waffle'||kind==='parallel-coordinates')return validateMultiRows(input,kind,numberValue);
   if(kind==='bar-chart-race'||kind==='circle-packing')return validateMotionRows(input,kind,numberValue);
   if(kind==='marimekko'||kind==='dumbbell')return validateBusinessRows(input,kind,numberValue);
   if(kind==='bump'||kind==='beeswarm')return validateComparisonRows(input,kind,numberValue);
@@ -131,7 +140,7 @@ const numericRanges: Partial<Record<keyof Settings, [number, number]>> = {
   width: [600,2400], height: [400,1800], titleSize: [14,60], subtitleSize: [10,32], fontSize: [9,28], legendSize: [9,24],
   opacity: [.1,1], strokeWidth: [0,4], decimals: [0,3], bandwidth: [0,1e12], overlap: [.5,4],
   innerRadius:[.08,.45],rotation:[-180,180],ringGap:[0,8],slotsPerTurn:[3,366],domainMin:[-1e12,1e12],domainMax:[-1e12,1e12],
-  lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14],racePosition:[0,119],raceDuration:[.5,10],raceTopN:[1,20],raceTimeSize:[18,60],packPadding:[0,20]
+  waffleCells:[10,1000],waffleColumns:[2,50],waffleGap:[0,12],lineWidth:[1,8],pointRadius:[2,14],valueSize:[8,24],pointPadding:[0,5],mekkoGap:[0,14],racePosition:[0,119],raceDuration:[.5,10],raceTopN:[1,20],raceTimeSize:[18,60],packPadding:[0,20]
 };
 export function parseProject(input: unknown, kind: Kind): Project {
   if (!input || typeof input !== 'object') throw Error('فایل پروژه معتبر نیست.');
@@ -146,7 +155,7 @@ export function parseProject(input: unknown, kind: Kind): Project {
     target[key] = Number.isFinite(n) ? Math.max(limits[0], Math.min(limits[1], n)) : (defaults(kind) as unknown as Record<string, unknown>)[key];
   }
   settings.width = Math.round(settings.width); settings.height = Math.round(settings.height); settings.decimals = Math.round(settings.decimals);
-  settings.slotsPerTurn=Math.round(settings.slotsPerTurn);settings.raceTopN=Math.round(settings.raceTopN);
+  settings.waffleCells=Math.round(settings.waffleCells);settings.waffleColumns=Math.round(settings.waffleColumns);settings.slotsPerTurn=Math.round(settings.slotsPerTurn);settings.raceTopN=Math.round(settings.raceTopN);
   for (const key of ['title','subtitle','unit'] as const) settings[key] = settings[key].slice(0, key === 'subtitle' ? 180 : 100);
   settings.focusPath=settings.focusPath.slice(0,647);
   settings.firstLabel=settings.firstLabel.trim().slice(0,40);settings.secondLabel=settings.secondLabel.trim().slice(0,40);
@@ -160,6 +169,8 @@ export function parseProject(input: unknown, kind: Kind): Project {
   for(const [key,values] of Object.entries(comparisonChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const businessChoices:Partial<Record<keyof Settings,string[]>>={mekkoOrientation:['vertical','horizontal'],mekkoSort:['input','total','name'],segmentSort:['input','total','name'],mekkoLabel:['percent','value','both'],mekkoPercent:['category','total'],pairSort:['input','name','first','second','change','gap','percent'],changeLabel:['difference','percent','both','none'],connectorStyle:['line','arrow']};
   for(const [key,values] of Object.entries(businessChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
+  const multiChoices:Partial<Record<keyof Settings,string[]>>={waffleShape:['square','circle'],waffleSort:['input','value','name'],waffleFill:['row','column'],parallelScale:['independent','shared'],parallelMissing:['gaps','exclude']};
+  for(const [key,values] of Object.entries(multiChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const motionChoices:Partial<Record<keyof Settings,string[]>>={raceScale:['global','period'],raceMissing:['hide','zero','carry'],packSort:['input','value','name'],packLabels:['leaves','groups','both','none']};
   for(const [key,values] of Object.entries(motionChoices))if(!values.includes(String(target[key])))target[key]=(defaults(kind) as unknown as Record<string,unknown>)[key];
   const fonts: CustomFont[] = [];
@@ -174,6 +185,10 @@ export function parseProject(input: unknown, kind: Kind): Project {
   if (p.colors && typeof p.colors === 'object') for (const [name, color] of Object.entries(p.colors)) if (hex(color) && !['__proto__','constructor','prototype'].includes(name)) colors[name] = color;
   const rows=validateRows(p.rows,kind);if(kind==='bump'||kind==='beeswarm')validateComparisonData(rows,kind,settings);
   if(kind==='marimekko'||kind==='dumbbell')validateBusinessData(rows,kind,settings);
+  if(kind==='parallel-coordinates'){
+    const state=axisState(settings,[...new Set(rows.map(r=>r.axis!))]);
+    settings.parallelOrder=JSON.stringify(state.order);settings.parallelInverted=JSON.stringify(state.inverted);settings.parallelFilters=JSON.stringify(state.filters);parallelTable(rows,settings);
+  }
   if(kind==='bar-chart-race')settings.racePosition=Math.min(settings.racePosition,raceTable(rows,settings.raceMissing).periods.length-1);
   return { version:1, kind, rows, settings, fonts, colors,...(kind==='bar-chart-race'?{logos:parseLogos(p.logos)}:{}) };
 }
