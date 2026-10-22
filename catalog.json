@@ -480,5 +480,66 @@
     ],
     "entry": "/studios/parallel-coordinates/index.html",
     "preview": "/previews/parallel-coordinates.svg"
+  },
+  {
+    "id": "network",
+    "title": "شبکه‌ای",
+    "englishTitle": "Network Graph",
+    "category": "flow",
+    "categoryLabel": "جریان و ارتباط",
+    "useCase": "ارتباط‌ها و همسایه‌ها را کشف کنید",
+    "description": "اعضا و رابطه‌های میان آن‌ها؛ شبکهٔ همکاری، موضوع‌ها یا سازمان‌ها را با گره‌های قابل جابه‌جایی، وزن ارتباط و گروه‌های رنگی ببینید.",
+    "tags": [
+      "شبکه",
+      "شبکه‌ای",
+      "گره",
+      "رابطه",
+      "همکاری",
+      "network",
+      "graph"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/network",
+    "buildArgs": [
+      "--base=/studios/network/"
+    ],
+    "entry": "/studios/network/index.html",
+    "preview": "/previews/network.svg"
+  },
+  {
+    "id": "waterfall",
+    "title": "آبشاری",
+    "englishTitle": "Waterfall Chart",
+    "category": "comparison",
+    "categoryLabel": "مقایسه",
+    "useCase": "از مقدار اولیه به نتیجه برسید",
+    "description": "افزایش‌ها و کاهش‌های پیاپی در یک مسیر؛ از درآمد تا سود یا از بودجه تا مانده را با جمع‌های میانی و نهایی توضیح دهید.",
+    "tags": [
+      "آبشار",
+      "آبشاری",
+      "تغییر",
+      "افزایش",
+      "کاهش",
+      "سود",
+      "بودجه",
+      "waterfall"
+    ],
+    "formats": [
+      "SVG",
+      "PNG",
+      "JPG"
+    ],
+    "inputs": "Excel، CSV، JSON و ورود دستی",
+    "directory": "apps/waterfall",
+    "buildArgs": [
+      "--base=/studios/waterfall/"
+    ],
+    "entry": "/studios/waterfall/index.html",
+    "preview": "/previews/waterfall.svg"
   }
 ]

@@ -16,7 +16,7 @@
     "test:studios": "node scripts/test-studios.mjs",
     "check": "tsc --noEmit && npm test",
     "build:portable": "node scripts/build-portable.mjs",
-    "previews": "node scripts/generate-previews.mjs && node scripts/generate-series-previews.mjs && node scripts/generate-radial-previews.mjs && node scripts/generate-comparison-previews.mjs && node scripts/generate-business-previews.mjs && node scripts/generate-motion-previews.mjs && node scripts/generate-multivariate-previews.mjs"
+    "previews": "node scripts/generate-previews.mjs && node scripts/generate-series-previews.mjs && node scripts/generate-radial-previews.mjs && node scripts/generate-comparison-previews.mjs && node scripts/generate-business-previews.mjs && node scripts/generate-motion-previews.mjs && node scripts/generate-multivariate-previews.mjs && node scripts/generate-network-waterfall-previews.mjs"
   },
   "devDependencies": {
     "@types/d3-hierarchy": "3.1.7",

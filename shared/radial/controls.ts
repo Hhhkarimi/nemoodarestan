@@ -1,3 +1,5 @@
+import {networkInfo} from '../network/controls.ts';
+import {waterfallInfo} from '../waterfall/controls.ts';
 import {multiInfo} from '../multivariate/controls.ts';
 import type { Kind, Project, Row, Settings } from '../series/model.ts';
 import { flatten, hierarchy } from './math.ts';
@@ -10,6 +12,8 @@ interface Controls {
   toggle:(label:string,key:keyof Settings)=>string;
 }
 export function editorInfo(kind:Kind):{noun:string;samples:[string,string];help:string;columns:string[];keys:(keyof Row)[];guide:string}{
+  if(kind==='network')return networkInfo();
+  if(kind==='waterfall')return waterfallInfo();
   if(kind==='waffle'||kind==='parallel-coordinates')return multiInfo(kind);
   if(kind==='bar-chart-race'||kind==='circle-packing')return motionInfo(kind);
   if(kind==='marimekko'||kind==='dumbbell')return businessInfo(kind);

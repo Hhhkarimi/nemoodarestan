@@ -1,3 +1,5 @@
+import {renderNetwork} from '../network/chart.ts';
+import {renderWaterfall} from '../waterfall/chart.ts';
 import {renderMulti} from '../multivariate/chart.ts';
 import { area, curveBasis, curveLinear, curveMonotoneX, curveStep, stack, stackOffsetNone, stackOffsetSilhouette, stackOffsetWiggle, stackOrderDescending, stackOrderInsideOut, stackOrderNone, stackOrderReverse } from 'd3-shape';
 import type { SeriesPoint } from 'd3-shape';
@@ -20,6 +22,8 @@ function node<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attributes = 
 const scale = (a: number,b: number,c: number,d: number) => (x: number): number => c+(x-a)/(b-a || 1)*(d-c);
 export interface ChartResult { svg: SVGSVGElement; summaries: {label:string;value:string}[]; note: string; bandwidth?: number }
 export function renderChart(project: Project, selectGroup?: (group: string) => void): ChartResult {
+  if(project.kind==='network')return renderNetwork(project,selectGroup);
+  if(project.kind==='waterfall')return renderWaterfall(project,selectGroup);
   if(project.kind==='waffle'||project.kind==='parallel-coordinates')return renderMulti(project,selectGroup);
   if(project.kind==='bar-chart-race'||project.kind==='circle-packing')return renderMotion(project,selectGroup);
   if(project.kind==='marimekko'||project.kind==='dumbbell')return renderBusiness(project,selectGroup);

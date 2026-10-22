@@ -1,0 +1,11 @@
+import {writeFile} from 'node:fs/promises';import {resolve} from 'node:path';
+import {initial} from '../shared/series/model.ts';
+import {graphTable,networkLayout} from '../shared/network/math.ts';
+import {waterfallSteps} from '../shared/waterfall/math.ts';
+import {root} from './run.mjs';
+const colors=['#468b6f','#c5ce88','#80aab5','#dca265'],wrap=content=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 324">${content}</svg>`;
+const p=initial('network'),graph=graphTable(p.rows,p.nodes),layout=networkLayout(graph,{...p.settings,networkRadius:14,networkDistance:90},530,265),byId=new Map(layout.nodes.map(n=>[n.id,n])),groups=[...new Set(graph.nodes.map(n=>n.group))];
+await writeFile(resolve(root,'public/previews/network.svg'),wrap(`<g transform="translate(35 27)">${layout.links.map(l=>{const a=byId.get(l.source),b=byId.get(l.target);return `<path d="M${a.px} ${a.py}L${b.px} ${b.py}" stroke="#acbcae" stroke-width="${.5+Math.sqrt(l.value)*.65}"/>`;}).join('')}${layout.nodes.map(n=>`<circle cx="${n.px}" cy="${n.py}" r="${n.r}" fill="${colors[groups.indexOf(n.group)]}" stroke="#faf9f5" stroke-width="2"/>`).join('')}</g>`));
+const steps=waterfallSteps(initial('waterfall').rows),max=Math.max(...steps.flatMap(p=>[p.from,p.to])),y=v=>280-v/max*245,band=540/steps.length,ink={increase:colors[0],decrease:'#c88372',absolute:colors[3],total:colors[2]};
+await writeFile(resolve(root,'public/previews/waterfall.svg'),wrap(steps.map((p,i)=>`<rect x="${30+i*band}" y="${Math.min(y(p.from),y(p.to))}" width="${band*.72}" height="${Math.max(1,Math.abs(y(p.to)-y(p.from)))}" rx="1" fill="${ink[p.color]}"/>${i<steps.length-1?`<path d="M${30+i*band+band*.72} ${y(p.after)}h${band*.28}" stroke="#acbcae" stroke-width="1.5" stroke-dasharray="3 2"/>`:''}`).join('')));
+console.log('Network and Waterfall previews generated from the studio samples.');
